@@ -40,11 +40,10 @@ impl InformationElement {
         let mut information_element: InformationElement = Default::default();
         information_element.id = try!(readable.read_u8());
         information_element.length = try!(readable.read_u16::<BigEndian>());
-        let content_length = information_element.length - 3;
-        let bytes_read = try!(readable.take(content_length as u64)
+        let bytes_read = try!(readable.take(information_element.length as u64)
                               .read_to_end(&mut information_element.contents));
-        assert!(!(bytes_read > content_length as usize));
-        if bytes_read < content_length as usize {
+        assert!(!(bytes_read > information_element.length as usize));
+        if bytes_read < information_element.length as usize {
             return Err(Error::Undersized(bytes_read + 3));
         }
         Ok(information_element)
@@ -80,7 +79,7 @@ mod tests {
     fn read_from() {
         let mut file = File::open("data/0-mo.sbd").unwrap();
         file.seek(SeekFrom::Start(3)).unwrap();
-        let readable = file.take(28);
+        let readable = file.take(31);
         InformationElement::read_from(readable).unwrap();
     }
 
@@ -88,7 +87,7 @@ mod tests {
     fn len() {
         let mut file = File::open("data/0-mo.sbd").unwrap();
         file.seek(SeekFrom::Start(3)).unwrap();
-        let readable = file.take(28);
+        let readable = file.take(31);
         let ie = InformationElement::read_from(readable).unwrap();
         assert_eq!(28, ie.len());
     }
@@ -97,7 +96,7 @@ mod tests {
     fn undersized() {
         let mut file = File::open("data/0-mo.sbd").unwrap();
         file.seek(SeekFrom::Start(3)).unwrap();
-        let readable = file.take(27);
+        let readable = file.take(30);
         assert!(InformationElement::read_from(readable).is_err());
     }
 }
