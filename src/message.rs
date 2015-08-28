@@ -64,6 +64,9 @@ impl Message {
                 break
             }
         }
+        if try!(readable.take(1).read_to_end(&mut Vec::new())) != 0 {
+            return Err(Error::Oversized);
+        }
         Ok(message)
     }
 
@@ -119,7 +122,7 @@ mod tests {
     use super::*;
 
     use std::fs::File;
-    use std::io::Read;
+    use std::io::{Cursor, Read};
 
     #[test]
     fn from_path() {
@@ -160,6 +163,13 @@ mod tests {
     fn undersized() {
         let file = File::open("data/0-mo.sbd").unwrap();
         let readable = file.take(58);
+        assert!(Message::read_from(readable).is_err());
+    }
+
+    #[test]
+    fn oversized() {
+        let file = File::open("data/0-mo.sbd").unwrap();
+        let readable = file.chain(Cursor::new(vec![0]));
         assert!(Message::read_from(readable).is_err());
     }
 }
