@@ -3,21 +3,26 @@
 //! SBD messages really can come in two forms, mobile-originated and mobile-terminated. This module
 //! provides functionality for the MO subset of messages.
 
+use std::io::Read;
 use std::path::Path;
 
-use Result;
+use byteorder::{ReadBytesExt, BigEndian};
+
+use {Error, Result};
 use information_element::SessionStatus;
 use message::Message;
 
 /// A mobile originated (MO) message;
 #[derive(Debug)]
 pub struct MobileOriginated {
+    cdr_reference: u32,
     imei: [u8; 15],
 }
 
 impl Default for MobileOriginated {
     fn default() -> MobileOriginated {
         MobileOriginated {
+            cdr_reference: 0,
             imei: [0; 15]
         }
     }
@@ -41,7 +46,7 @@ impl MobileOriginated {
     ///
     /// This is a unique value given each call data record.
     pub fn cdr_reference(&self) -> u32 {
-        0
+        self.cdr_reference
     }
 
     /// Returns the IMEI number.
@@ -97,6 +102,17 @@ impl Message {
     /// ```
     pub fn into_mobile_originated(self) -> Result<MobileOriginated> {
         let mut mobile_originated: MobileOriginated = Default::default();
+        let header = match self.mobile_originated_header() {
+            Some(header) => header,
+            None => return Err(Error::NoMobileOriginatedHeader),
+        };
+        let mut readable = header.as_contents_reader();
+        mobile_originated.cdr_reference = try!(readable.read_u32::<BigEndian>());
+        let bytes_read = try!(readable.read(&mut mobile_originated.imei));
+        if bytes_read != mobile_originated.imei.len() {
+            return Err(Error::Undersized(bytes_read));
+        }
+        println!("{:?}", mobile_originated);
         Ok(mobile_originated)
     }
 }
@@ -124,11 +140,11 @@ mod tests {
     #[test]
     fn mo_header_values() {
         let mo = MobileOriginated::from_path("data/0-mo.sbd").unwrap();
-        assert_eq!(1, mo.cdr_reference());
-        assert_eq!("1234", str::from_utf8(mo.imei()).unwrap());
+        assert_eq!(1894516585, mo.cdr_reference());
+        assert_eq!("300234063904190", str::from_utf8(mo.imei()).unwrap());
         assert_eq!(SessionStatus::Ok, mo.session_status());
-        assert_eq!(123, mo.momsn());
-        assert_eq!(123, mo.mtmsn());
-        assert_eq!(123, mo.time());
+        assert_eq!(75, mo.momsn());
+        assert_eq!(0, mo.mtmsn());
+        assert_eq!(1436465708, mo.time());
     }
 }

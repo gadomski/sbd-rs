@@ -115,6 +115,11 @@ impl Message {
     pub fn is_mobile_terminated(&self) -> bool {
         false
     }
+
+    /// Returns the mobile originated header information element.
+    pub fn mobile_originated_header(&self) -> Option<&InformationElement> {
+        self.information_elements.get(1)
+    }
 }
 
 #[cfg(test)]

@@ -3,7 +3,7 @@
 //! Information elements come after the SBD header. They come in many types, including more
 //! header-type information and the actual data payload.
 
-use std::io::Read;
+use std::io::{Cursor, Read};
 
 use byteorder::{ReadBytesExt, BigEndian};
 
@@ -81,6 +81,26 @@ impl InformationElement {
     /// ```
     pub fn len(&self) -> u16 {
         self.length + 3
+    }
+
+    /// Returns a object that can `Read` over the contents of this information element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{Read, Seek, SeekFrom};
+    /// # use std::fs::File;
+    /// # use sbd::information_element::InformationElement;
+    /// # let mut file = File::open("data/0-mo.sbd").unwrap();
+    /// # file.seek(SeekFrom::Start(3)).unwrap();
+    /// # let readable = file.take(31);
+    /// let information_element = InformationElement::read_from(readable).unwrap();
+    /// let mut readable = information_element.as_contents_reader();
+    /// let mut buffer: Vec<u8> = Vec::new();
+    /// readable.read_to_end(&mut buffer);
+    /// ```
+    pub fn as_contents_reader<'a>(&self) -> Cursor<&[u8]> {
+        Cursor::new(&self.contents[..])
     }
 }
 

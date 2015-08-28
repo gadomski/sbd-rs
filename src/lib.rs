@@ -27,6 +27,7 @@ pub enum Error {
     ByteorderError(byteorder::Error),
     IoError(std::io::Error),
     InvalidProtocolRevisionNumber(u8),
+    NoMobileOriginatedHeader,
     Oversized, // Oversized doesn't demand a size since we don't want to find out how much there really is
     Undersized(usize),
 }
