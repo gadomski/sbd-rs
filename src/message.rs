@@ -2,6 +2,7 @@
 //!
 //! This module provides the ability to read SBD messages from and write SBD messages to streams.
 
+use std::io::Read;
 use std::path::Path;
 
 use Result;
@@ -22,14 +23,35 @@ impl Message {
     pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Message> {
         Ok(Message)
     }
+
+    /// Reads in a message from an object that implements `Read`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::fs::File;
+    /// use sbd::message::Message;
+    /// let mut file = File::open("data/0-mo.sbd").unwrap();
+    /// let message = Message::read_from(file).unwrap();
+    pub fn read_from<R: Read>(readable: R) -> Result<Message> {
+        Ok(Message)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    use std::fs::File;
+
     #[test]
-    fn read_from_path() {
+    fn from_path() {
         Message::from_path("data/0-mo.sbd").unwrap();
+    }
+
+    #[test]
+    fn from_read() {
+        let mut file = File::open("data/0-mo.sbd").unwrap();
+        Message::read_from(file).unwrap();
     }
 }
