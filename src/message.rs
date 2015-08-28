@@ -54,7 +54,7 @@ impl Message {
         message.overall_message_length = try!(readable.read_u16::<BigEndian>());
         let mut bytes_read = 0u16;
         loop {
-            let ie = match InformationElement::read_from(readable) {
+            let ie = match InformationElement::read_from(&mut readable) {
                 Ok(ie) => ie,
                 Err(e) => return Err(e),
             };

@@ -25,7 +25,7 @@ impl InformationElement {
     /// use std::io::{Seek, SeekFrom};
     /// use std::fs::File;
     /// use sbd::information_element::InformationElement;
-    /// let file = File::open("data/0-mo.sbd").unwrap();
+    /// let mut file = File::open("data/0-mo.sbd").unwrap();
     /// file.seek(SeekFrom::Start(3));
     /// let readable = file.take(28);
     /// InformationElement::read_from(readable).unwrap();
@@ -42,7 +42,7 @@ impl InformationElement {
     /// # use std::io::{Seek, SeekFrom};
     /// # use std::fs::File;
     /// # use sbd::information_element::InformationElement;
-    /// # let file = File::open("data/0-mo.sbd").unwrap();
+    /// # let mut file = File::open("data/0-mo.sbd").unwrap();
     /// # file.seek(SeekFrom::Start(3));
     /// # let readable = file.take(28);
     /// let information_element = InformationElement::read_from(readable).unwrap();
@@ -57,12 +57,12 @@ impl InformationElement {
 mod tests {
     use super::*;
 
-    use std::io::{Seek, SeekFrom};
+    use std::io::{Read, Seek, SeekFrom};
     use std::fs::File;
 
     #[test]
     fn read_from() {
-        let file = File::open("data/0-mo.sbd").unwrap();
+        let mut file = File::open("data/0-mo.sbd").unwrap();
         file.seek(SeekFrom::Start(3));
         let readable = file.take(28);
         InformationElement::read_from(readable).unwrap();
@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn len() {
-        let file = File::open("data/0-mo.sbd").unwrap();
+        let mut file = File::open("data/0-mo.sbd").unwrap();
         file.seek(SeekFrom::Start(3));
         let readable = file.take(28);
         let ie = InformationElement::read_from(readable).unwrap();
