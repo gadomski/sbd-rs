@@ -5,3 +5,5 @@ authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 
 [dependencies]
 byteorder = "0.3"
+enum_primitive = "0.1"
+num = "0.1"

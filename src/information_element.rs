@@ -10,7 +10,8 @@ use byteorder::{ReadBytesExt, BigEndian};
 use {Error, Result};
 
 /// Indicates the success for failure of the SBD session.
-#[derive(Debug, PartialEq)]
+enum_from_primitive! {
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SessionStatus {
     Ok = 0,
     OkMobileTerminatedTooLarge = 1,
@@ -20,6 +21,8 @@ pub enum SessionStatus {
     RFLinkLoss = 13,
     IMEIProtocolAnomaly = 14,
     Prohibited = 15,
+    Unknown,
+}
 }
 
 /// An information element, or IE.
@@ -81,6 +84,11 @@ impl InformationElement {
     /// ```
     pub fn len(&self) -> u16 {
         self.length + 3
+    }
+
+    /// Returns the id of the information element.
+    pub fn id(&self) -> u8 {
+        self.id
     }
 
     /// Returns a object that can `Read` over the contents of this information element.

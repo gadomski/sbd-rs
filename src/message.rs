@@ -2,6 +2,7 @@
 //!
 //! This module provides the ability to read SBD messages from and write SBD messages to streams.
 
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -16,7 +17,7 @@ use information_element::InformationElement;
 pub struct Message {
     protocol_revision_number: u8,
     overall_message_length: u16,
-    information_elements: Vec<InformationElement>,
+    information_elements: HashMap<u8, InformationElement>,
 }
 
 impl Message {
@@ -59,7 +60,7 @@ impl Message {
                 Err(e) => return Err(e),
             };
             bytes_read += ie.len();
-            message.information_elements.push(ie);
+            message.information_elements.insert(ie.id(), ie);
             if bytes_read >= message.overall_message_length {
                 break
             }
@@ -118,7 +119,7 @@ impl Message {
 
     /// Returns the mobile originated header information element.
     pub fn mobile_originated_header(&self) -> Option<&InformationElement> {
-        self.information_elements.get(1)
+        self.information_elements.get(&1)
     }
 }
 

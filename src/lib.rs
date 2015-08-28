@@ -19,6 +19,9 @@ pub mod message;
 pub mod mobile_originated;
 
 extern crate byteorder;
+#[macro_use]
+extern crate enum_primitive;
+extern crate num;
 
 use std::result;
 

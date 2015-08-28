@@ -7,6 +7,7 @@ use std::io::Read;
 use std::path::Path;
 
 use byteorder::{ReadBytesExt, BigEndian};
+use num::traits::FromPrimitive;
 
 use {Error, Result};
 use information_element::SessionStatus;
@@ -17,13 +18,21 @@ use message::Message;
 pub struct MobileOriginated {
     cdr_reference: u32,
     imei: [u8; 15],
+    session_status: SessionStatus,
+    momsn: u16,
+    mtmsn: u16,
+    time: u32,
 }
 
 impl Default for MobileOriginated {
     fn default() -> MobileOriginated {
         MobileOriginated {
             cdr_reference: 0,
-            imei: [0; 15]
+            imei: [0; 15],
+            session_status: SessionStatus::Unknown,
+            momsn: 0,
+            mtmsn: 0,
+            time: 0,
         }
     }
 }
@@ -58,14 +67,14 @@ impl MobileOriginated {
 
     /// Returns the status of the mobile originated session.
     pub fn session_status(&self) -> SessionStatus {
-        SessionStatus::Ok
+        self.session_status
     }
 
     /// Returns the mobile originated message sequence number.
     ///
     /// This value is set by the IMEI, and is incremented for every successful SBD session.
     pub fn momsn(&self) -> u16 {
-        0
+        self.momsn
     }
 
     /// Returns the mobile terminated message squence number.
@@ -74,7 +83,7 @@ impl MobileOriginated {
     /// tranferred to the IMEI as part of the MT payload transfer, regardless of the session
     /// success.
     pub fn mtmsn(&self) -> u16 {
-        0
+        self.mtmsn
     }
 
     /// Returns the UTC timestamp in the form of an epoch integer.
@@ -82,7 +91,7 @@ impl MobileOriginated {
     /// This is the time of the session between the IMEI and the Gateway, in seconds since the
     /// start of the epoch: 1/1/1970 00:00:00.
     pub fn time(&self) -> u32 {
-        0
+        self.time
     }
 }
 
@@ -112,7 +121,13 @@ impl Message {
         if bytes_read != mobile_originated.imei.len() {
             return Err(Error::Undersized(bytes_read));
         }
-        println!("{:?}", mobile_originated);
+        mobile_originated.session_status = match SessionStatus::from_u8(try!(readable.read_u8())) {
+            Some(status) => status,
+            None => SessionStatus::Unknown,
+        };
+        mobile_originated.momsn = try!(readable.read_u16::<BigEndian>());
+        mobile_originated.mtmsn = try!(readable.read_u16::<BigEndian>());
+        mobile_originated.time = try!(readable.read_u32::<BigEndian>());
         Ok(mobile_originated)
     }
 }
