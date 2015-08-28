@@ -27,6 +27,7 @@ pub enum Error {
     ByteorderError(byteorder::Error),
     IoError(std::io::Error),
     InvalidProtocolRevisionNumber(u8),
+    Undersized(usize),
 }
 
 impl From<byteorder::Error> for Error {

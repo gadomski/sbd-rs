@@ -37,6 +37,6 @@ mod tests {
     #[test]
     fn from_message() {
         let message = Message::from_path("data/0-mo.sbd").unwrap();
-        let mo = message.into_mobile_originated().unwrap();
+        message.into_mobile_originated().unwrap();
     }
 }
