@@ -36,6 +36,8 @@ impl Message {
 
     /// Reads in a message from an object that implements `Read`.
     ///
+    /// Per the specification, oversized and undersized messages will result in an error.
+    ///
     /// # Examples
     ///
     /// ```
@@ -50,6 +52,15 @@ impl Message {
             return Err(Error::InvalidProtocolRevisionNumber(message.protocol_revision_number));
         }
         message.overall_message_length = try!(readable.read_u16::<BigEndian>());
+        let mut bytes_read = 0u16;
+        loop {
+            let ie = match InformationElement::read_from(readable) {
+                Ok(ie) => ie,
+                Err(e) => return Err(e),
+            };
+            bytes_read += ie.len();
+            message.information_elements.push(ie);
+        }
         Ok(message)
     }
 
@@ -105,6 +116,7 @@ mod tests {
     use super::*;
 
     use std::fs::File;
+    use std::io::Read;
 
     #[test]
     fn from_path() {
@@ -139,5 +151,12 @@ mod tests {
         assert!(message.is_mobile_originated());
         assert!(!message.is_mobile_terminated());
         // TODO try to get a mobile terminated message to test the other way
+    }
+
+    #[test]
+    fn undersized() {
+        let file = File::open("data/0-mo.sbd").unwrap();
+        let readable = file.take(58);
+        assert!(Message::read_from(readable).is_err());
     }
 }
