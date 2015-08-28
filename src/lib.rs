@@ -16,6 +16,7 @@
 
 pub mod information_element;
 pub mod message;
+pub mod mobile_originated;
 
 extern crate byteorder;
 
