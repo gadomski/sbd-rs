@@ -28,12 +28,12 @@ impl InformationElement {
     /// # Examples
     ///
     /// ```
-    /// use std::io::{Seek, SeekFrom};
+    /// use std::io::{Read, Seek, SeekFrom};
     /// use std::fs::File;
     /// use sbd::information_element::InformationElement;
     /// let mut file = File::open("data/0-mo.sbd").unwrap();
-    /// file.seek(SeekFrom::Start(3));
-    /// let readable = file.take(28);
+    /// file.seek(SeekFrom::Start(3)).unwrap();
+    /// let readable = file.take(31);
     /// InformationElement::read_from(readable).unwrap();
     /// ```
     pub fn read_from<R: Read>(mut readable: R) -> Result<InformationElement> {
@@ -51,20 +51,23 @@ impl InformationElement {
 
     /// Returns the length of the information element.
     ///
+    /// This is not the same as the internal length, but is rather the length of the contents plus
+    /// the length of the IE header.
+    ///
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{Seek, SeekFrom};
+    /// # use std::io::{Read, Seek, SeekFrom};
     /// # use std::fs::File;
     /// # use sbd::information_element::InformationElement;
     /// # let mut file = File::open("data/0-mo.sbd").unwrap();
-    /// # file.seek(SeekFrom::Start(3));
-    /// # let readable = file.take(28);
+    /// # file.seek(SeekFrom::Start(3)).unwrap();
+    /// # let readable = file.take(31);
     /// let information_element = InformationElement::read_from(readable).unwrap();
-    /// assert_eq!(28, information_element.len());
+    /// assert_eq!(31, information_element.len());
     /// ```
     pub fn len(&self) -> u16 {
-        self.length
+        self.length + 3
     }
 }
 
@@ -89,7 +92,7 @@ mod tests {
         file.seek(SeekFrom::Start(3)).unwrap();
         let readable = file.take(31);
         let ie = InformationElement::read_from(readable).unwrap();
-        assert_eq!(28, ie.len());
+        assert_eq!(31, ie.len());
     }
 
     #[test]
