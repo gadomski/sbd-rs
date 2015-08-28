@@ -2,3 +2,6 @@
 name = "sbd"
 version = "0.0.1"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
+
+[dependencies]
+byteorder = "0.3"

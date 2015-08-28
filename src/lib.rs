@@ -14,13 +14,24 @@
 //! This is a simple library for reading SBD messages from a stream, decoding their headers and
 //! data payloads, and writing them back to a stream.
 
+pub mod information_element;
 pub mod message;
+
+extern crate byteorder;
 
 use std::result;
 
 #[derive(Debug)]
 pub enum Error {
+    ByteorderError(byteorder::Error),
     IoError(std::io::Error),
+    InvalidProtocolRevisionNumber(u8),
+}
+
+impl From<byteorder::Error> for Error {
+    fn from(err: byteorder::Error) -> Error {
+        Error::ByteorderError(err)
+    }
 }
 
 impl From<std::io::Error> for Error {
