@@ -46,10 +46,10 @@ impl Message {
     pub fn read_from<R: Read>(mut readable: R) -> Result<Message> {
         let mut message: Message = Default::default();
         message.protocol_revision_number = try!(readable.read_u8());
-        message.overall_message_length = try!(readable.read_u16::<BigEndian>());
         if message.protocol_revision_number != 1 {
             return Err(Error::InvalidProtocolRevisionNumber(message.protocol_revision_number));
         }
+        message.overall_message_length = try!(readable.read_u16::<BigEndian>());
         Ok(message)
     }
 
