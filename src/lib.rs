@@ -14,6 +14,8 @@
 //! This is a simple library for reading SBD messages from a stream, decoding their headers and
 //! data payloads, and writing them back to a stream.
 
+pub mod message;
+
 use std::result;
 
 #[derive(Debug)]
