@@ -46,10 +46,27 @@ impl Message {
     pub fn read_from<R: Read>(mut readable: R) -> Result<Message> {
         let mut message: Message = Default::default();
         message.protocol_revision_number = try!(readable.read_u8());
+        message.overall_message_length = try!(readable.read_u16::<BigEndian>());
         if message.protocol_revision_number != 1 {
             return Err(Error::InvalidProtocolRevisionNumber(message.protocol_revision_number));
         }
         Ok(message)
+    }
+
+    /// Returns the overall message length of the SBD message.
+    ///
+    /// This value *includes* the initial three bytes, whereas the `overall_message_length`
+    /// value in the SBD header does *not* include those bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sbd::message::Message;
+    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
+    /// assert_eq!(59, message.len());
+    /// ```
+    pub fn len(&self) -> usize {
+        self.overall_message_length as usize + 3
     }
 }
 
@@ -78,5 +95,11 @@ mod tests {
     #[test]
     fn from_path_that_is_not_an_sbd_message() {
         assert!(Message::from_path("data/1-invalid.sbd").is_err());
+    }
+
+    #[test]
+    fn len() {
+        let message = Message::from_path("data/0-mo.sbd").unwrap();
+        assert_eq!(59, message.len());
     }
 }
