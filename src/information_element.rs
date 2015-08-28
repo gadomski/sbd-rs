@@ -9,6 +9,19 @@ use byteorder::{ReadBytesExt, BigEndian};
 
 use {Error, Result};
 
+/// Indicates the success for failure of the SBD session.
+#[derive(Debug, PartialEq)]
+pub enum SessionStatus {
+    Ok = 0,
+    OkMobileTerminatedTooLarge = 1,
+    OkLocationUnacceptableQuality = 2,
+    Timeout = 10,
+    MobileOriginatedTooLarge = 12,
+    RFLinkLoss = 13,
+    IMEIProtocolAnomaly = 14,
+    Prohibited = 15,
+}
+
 /// An information element, or IE.
 ///
 /// These are the building blocks of a SBD message. There are several types, generally divided into
