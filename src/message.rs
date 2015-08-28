@@ -68,6 +68,36 @@ impl Message {
     pub fn len(&self) -> usize {
         self.overall_message_length as usize + 3
     }
+
+    /// Returns true if this message is mobile originated.
+    ///
+    /// This is deteremined by the set of information elements in this message.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sbd::message::Message;
+    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
+    /// assert!(message.is_mobile_originated());
+    /// ```
+    pub fn is_mobile_originated(&self) -> bool {
+        true
+    }
+
+    /// Returns true if this message is mobile terminated.
+    ///
+    /// This is deteremined by the set of information elements in this message.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sbd::message::Message;
+    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
+    /// assert!(!message.is_mobile_terminated());
+    /// ```
+    pub fn is_mobile_terminated(&self) -> bool {
+        false
+    }
 }
 
 #[cfg(test)]
@@ -101,5 +131,13 @@ mod tests {
     fn len() {
         let message = Message::from_path("data/0-mo.sbd").unwrap();
         assert_eq!(59, message.len());
+    }
+
+    #[test]
+    fn is_mobile_originated() {
+        let message = Message::from_path("data/0-mo.sbd").unwrap();
+        assert!(message.is_mobile_originated());
+        assert!(!message.is_mobile_terminated());
+        // TODO try to get a mobile terminated message to test the other way
     }
 }
