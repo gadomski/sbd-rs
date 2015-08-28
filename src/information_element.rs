@@ -49,7 +49,7 @@ impl InformationElement {
     /// assert_eq!(28, information_element.len());
     /// ```
     pub fn len(&self) -> u16 {
-        0
+        1
     }
 }
 

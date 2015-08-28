@@ -60,6 +60,9 @@ impl Message {
             };
             bytes_read += ie.len();
             message.information_elements.push(ie);
+            if bytes_read >= message.overall_message_length {
+                break
+            }
         }
         Ok(message)
     }
