@@ -12,6 +12,8 @@ use byteorder::{ReadBytesExt, BigEndian};
 use {Error, Result};
 use information_element::InformationElement;
 
+const MESSAGE_HEADER_LENGTH: usize = 3;
+
 /// An SBD message.
 #[derive(Debug, Default)]
 pub struct Message {
@@ -84,7 +86,7 @@ impl Message {
     /// assert_eq!(59, message.len());
     /// ```
     pub fn len(&self) -> usize {
-        self.overall_message_length as usize + 3
+        self.overall_message_length as usize + MESSAGE_HEADER_LENGTH
     }
 
     /// Returns true if this message is mobile originated.
