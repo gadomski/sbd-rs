@@ -1,7 +1,32 @@
-sbd-rs
-======
+# sbd-rs
 
 Native rust library to read and write Iridium Short Burt Data (SBD) messages.
+
+
+## Installation
+
+Include the following in your `Cargo.toml`:
+
+```toml
+[dependencies]
+sbd = "0.0.1"
+```
+
+## Documentation
+
+The documentation includes examples, which should be used as a reference when developing an application with **sbd**.
+To build the documentation, first clone the git repository, then build the documentation and open it:
+
+```bash
+$ git clone https://github.com/gadomski/sbd-rs
+$ cd sbd-rs
+$ cargo doc --open
+```
+
+This will open the documentation in your browser.
+
+
+## What is Iridium? What is SBD?
 
 Iridium can refer to both a [satellite network](https://en.wikipedia.org/wiki/Iridium_satellite_constellation) and the [private company](https://en.wikipedia.org/wiki/Iridium_Communications) that manages that network.
 Iriduim supports a variety of services, including phone communications, dial-up modems, and (our area of interest) a type of "packet" communication called Short Burst Data (SBD).
@@ -17,31 +42,6 @@ Endpoints are configured through a web interface, and can come in one of two fla
 
 This library includes facilities to read SBD messages stored on the filesystem, and to parse SBD messages coming in on a `TcpStream`.
 At this time, no binary executables are included in this package — it is a library only.
-
-
-## Installation
-
-Include the following in your `Cargo.toml`:
-
-```toml
-[dependencies]
-sbd = "0.0.1"
-```
-
-
-
-## Documentation
-
-The documentation includes examples, which should be used as a reference when developing an application with **sbd**.
-To build the documentation, first clone the git repository, then build the documentation and open it:
-
-```bash
-$ git clone https://github.com/gadomski/sbd-rs
-$ cd sbd-rs
-$ cargo doc --open
-```
-
-This will open the documentation in your browser.
 
 
 ## License
