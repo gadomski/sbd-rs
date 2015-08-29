@@ -101,6 +101,7 @@ impl Message {
     /// assert!(message.is_mobile_originated());
     /// ```
     pub fn is_mobile_originated(&self) -> bool {
+        // TODO this is a placeholder
         true
     }
 
@@ -116,6 +117,7 @@ impl Message {
     /// assert!(!message.is_mobile_terminated());
     /// ```
     pub fn is_mobile_terminated(&self) -> bool {
+        // TODO this is a placeholder
         false
     }
 
