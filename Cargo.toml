@@ -4,6 +4,7 @@ version = "0.0.1"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 description = "Read and write Iridium Short Burst Data (SBD) messages"
 repository = "https://github.com/gadomski/sbd-rs"
+documentation = "http://gadomski.github.io/sbd-rs"
 readme = "README.md"
 license = "MIT"
 
