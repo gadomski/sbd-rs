@@ -10,7 +10,7 @@ use byteorder::{ReadBytesExt, BigEndian};
 use num::traits::FromPrimitive;
 
 use {Error, Result};
-use information_element::SessionStatus;
+use information_element::{SessionStatus, InformationElementType};
 use message::Message;
 
 /// A mobile originated (MO) message;
@@ -119,13 +119,12 @@ impl Message {
     pub fn into_mobile_originated(self) -> Result<MobileOriginated> {
         let mut information_elements = self.into_information_elements();
 
-        // TODO demagicify these numbers
         // TODO should we fail if the payload is absent?
-        let header = match information_elements.remove(&1) {
+        let header = match information_elements.remove(&InformationElementType::MobileOriginatedHeader) {
             Some(header) => header,
             None => return Err(Error::NoMobileOriginatedHeader),
         };
-        let payload = match information_elements.remove(&2) {
+        let payload = match information_elements.remove(&InformationElementType::MobileOriginatedPayload) {
             Some(payload) => payload,
             None => return Err(Error::NoMobileOriginatedPayload),
         };

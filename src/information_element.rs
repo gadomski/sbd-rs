@@ -6,6 +6,7 @@
 use std::io::{Cursor, Read};
 
 use byteorder::{ReadBytesExt, BigEndian};
+use num::traits::FromPrimitive;
 
 use {Error, Result};
 
@@ -27,6 +28,26 @@ pub enum SessionStatus {
 }
 }
 
+/// Enum to name the information element ids.
+enum_from_primitive! {
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+pub enum InformationElementType {
+    MobileOriginatedHeader = 0x01,
+    MobileOriginatedPayload = 0x02,
+    MobileOriginatedLocationInformation = 0x03,
+    MobileTerminatedHeader = 0x41,
+    MobileTerminatedPayload = 0x42,
+    MobileTerminatedConfirmationMessage = 0x44,
+    Unknown,
+}
+}
+
+impl Default for InformationElementType {
+    fn default() -> InformationElementType {
+        InformationElementType::Unknown
+    }
+}
+
 /// An information element, or IE.
 ///
 /// These are the building blocks of a SBD message. There are several types, generally divided into
@@ -34,7 +55,7 @@ pub enum SessionStatus {
 /// into a specific type of IE.
 #[derive(Debug, Default)]
 pub struct InformationElement {
-    id: u8,
+    id: InformationElementType,
     length: u16,
     contents: Vec<u8>,
 }
@@ -56,7 +77,10 @@ impl InformationElement {
     /// ```
     pub fn read_from<R: Read>(mut readable: R) -> Result<InformationElement> {
         let mut information_element: InformationElement = Default::default();
-        information_element.id = try!(readable.read_u8());
+        information_element.id = match InformationElementType::from_u8(try!(readable.read_u8())) {
+            Some(ietype) => ietype,
+            None => InformationElementType::Unknown,
+        };
         information_element.length = try!(readable.read_u16::<BigEndian>());
         let bytes_read = try!(readable.take(information_element.length as u64)
                               .read_to_end(&mut information_element.contents));
@@ -89,7 +113,7 @@ impl InformationElement {
     }
 
     /// Returns the id of the information element.
-    pub fn id(&self) -> u8 {
+    pub fn id(&self) -> InformationElementType {
         self.id
     }
 

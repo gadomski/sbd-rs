@@ -10,7 +10,7 @@ use std::path::Path;
 use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 
 use {Error, Result};
-use information_element::InformationElement;
+use information_element::{InformationElement, InformationElementType};
 
 const MESSAGE_HEADER_LENGTH: usize = 3;
 
@@ -19,7 +19,7 @@ const MESSAGE_HEADER_LENGTH: usize = 3;
 pub struct Message {
     protocol_revision_number: u8,
     overall_message_length: u16,
-    information_elements: HashMap<u8, InformationElement>,
+    information_elements: HashMap<InformationElementType, InformationElement>,
 }
 
 impl Message {
@@ -133,7 +133,7 @@ impl Message {
     /// let information_elements = message.into_information_elements();
     /// assert_eq!(2, information_elements.len());
     /// ```
-    pub fn into_information_elements(self) -> HashMap<u8, InformationElement> {
+    pub fn into_information_elements(self) -> HashMap<InformationElementType, InformationElement> {
         self.information_elements
     }
 
@@ -152,7 +152,7 @@ impl Message {
         try!(w.write_u8(self.protocol_revision_number));
         try!(w.write_u16::<BigEndian>(self.overall_message_length));
         for information_element in self.information_elements.values() {
-            try!(w.write_u8(information_element.id()));
+            try!(w.write_u8(information_element.id() as u8));
             let contents = information_element.contents_ref();
             try!(w.write_u16::<BigEndian>(contents.len() as u16));
             try!(w.write_all(&contents[..]));
