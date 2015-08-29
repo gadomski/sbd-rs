@@ -1,4 +1,4 @@
-//! Receive, parse, store, and retrieve Iridium Short Burst Data (SBD) messages.
+//! Parse Iridium Short Burst Data (SBD) messages.
 //!
 //! Iridium is both a [satellite constellation](https://en.wikipedia.org/wiki/Iridium_satellite_constellation)
 //! and a [company](https://en.wikipedia.org/wiki/Iridium_Communications) that provides satellite
@@ -17,6 +17,10 @@
 pub mod information_element;
 pub mod message;
 pub mod mobile_originated;
+
+pub use information_element::InformationElement;
+pub use message::Message;
+pub use mobile_originated::MobileOriginated;
 
 extern crate byteorder;
 #[macro_use]
