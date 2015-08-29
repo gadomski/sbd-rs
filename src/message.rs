@@ -4,10 +4,10 @@
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::Path;
 
-use byteorder::{ReadBytesExt, BigEndian};
+use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 
 use {Error, Result};
 use information_element::InformationElement;
@@ -136,6 +136,29 @@ impl Message {
     pub fn into_information_elements(self) -> HashMap<u8, InformationElement> {
         self.information_elements
     }
+
+    /// Write this message back to a object that can `Write`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::io::Cursor;
+    /// use sbd::message::Message;
+    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
+    /// let mut cursor = Cursor::new(Vec::new());
+    /// message.write_to(&mut cursor);
+    /// ```
+    pub fn write_to<W: Write>(&self, w: &mut W) -> Result<()> {
+        try!(w.write_u8(self.protocol_revision_number));
+        try!(w.write_u16::<BigEndian>(self.overall_message_length));
+        for information_element in self.information_elements.values() {
+            try!(w.write_u8(information_element.id()));
+            let contents = information_element.contents_ref();
+            try!(w.write_u16::<BigEndian>(contents.len() as u16));
+            try!(w.write_all(&contents[..]));
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -192,5 +215,14 @@ mod tests {
         let file = File::open("data/0-mo.sbd").unwrap();
         let readable = file.chain(Cursor::new(vec![0]));
         assert!(Message::read_from(readable).is_err());
+    }
+
+    #[test]
+    fn write() {
+        let message = Message::from_path("data/0-mo.sbd").unwrap();
+        let mut cursor = Cursor::new(Vec::new());
+        message.write_to(&mut cursor).unwrap();
+        cursor.set_position(0);
+        Message::read_from(cursor).unwrap();
     }
 }

@@ -113,6 +113,11 @@ impl InformationElement {
         Cursor::new(&self.contents[..])
     }
 
+    /// Return a reference to this information elements contents.
+    pub fn contents_ref(&self) -> &Vec<u8> {
+        &self.contents
+    }
+
     /// Convert this information element into its contents.
     ///
     /// This consumes the information element.
