@@ -119,6 +119,8 @@ impl Message {
     pub fn into_mobile_originated(self) -> Result<MobileOriginated> {
         let mut information_elements = self.into_information_elements();
 
+        // TODO demagicify these numbers
+        // TODO should we fail if the payload is absent?
         let header = match information_elements.remove(&1) {
             Some(header) => header,
             None => return Err(Error::NoMobileOriginatedHeader),
