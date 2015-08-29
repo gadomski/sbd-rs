@@ -25,6 +25,7 @@ pub use mobile_originated::MobileOriginated;
 pub use mobile_terminated::MobileTerminated;
 
 extern crate byteorder;
+extern crate chrono;
 #[macro_use]
 extern crate enum_primitive;
 extern crate num;

@@ -7,6 +7,7 @@ use std::io::Read;
 use std::path::Path;
 
 use byteorder::{ReadBytesExt, BigEndian};
+use chrono::{DateTime, Duration, TimeZone, UTC};
 use num::traits::FromPrimitive;
 
 use {Error, Result};
@@ -21,7 +22,7 @@ pub struct MobileOriginated {
     session_status: SessionStatus,
     momsn: u16,
     mtmsn: u16,
-    time: u32,
+    time: DateTime<UTC>,
     payload: Vec<u8>,
 }
 
@@ -33,7 +34,7 @@ impl Default for MobileOriginated {
             session_status: SessionStatus::Unknown,
             momsn: 0,
             mtmsn: 0,
-            time: 0,
+            time: UTC.ymd(1970, 1, 1).and_hms(0, 0, 0),
             payload: Vec::new(),
         }
     }
@@ -92,7 +93,7 @@ impl MobileOriginated {
     ///
     /// This is the time of the session between the IMEI and the Gateway, in seconds since the
     /// start of the epoch: 1/1/1970 00:00:00.
-    pub fn time(&self) -> u32 {
+    pub fn time(&self) -> DateTime<UTC> {
         self.time
     }
 
@@ -142,7 +143,8 @@ impl Message {
         };
         mobile_originated.momsn = try!(readable.read_u16::<BigEndian>());
         mobile_originated.mtmsn = try!(readable.read_u16::<BigEndian>());
-        mobile_originated.time = try!(readable.read_u32::<BigEndian>());
+        mobile_originated.time = UTC.ymd(1970, 1, 1).and_hms(0, 0, 0) +
+            Duration::seconds(try!(readable.read_u32::<BigEndian>()) as i64);
 
         mobile_originated.payload = payload.into_contents();
 
@@ -155,6 +157,8 @@ mod tests {
     use super::*;
 
     use std::str;
+
+    use chrono::{TimeZone, UTC};
 
     use information_element::SessionStatus;
     use message::Message;
@@ -178,7 +182,7 @@ mod tests {
         assert_eq!(SessionStatus::Ok, mo.session_status());
         assert_eq!(75, mo.momsn());
         assert_eq!(0, mo.mtmsn());
-        assert_eq!(1436465708, mo.time());
+        assert_eq!(UTC.ymd(2015, 7, 9).and_hms(18, 15, 08), mo.time());
     }
 
     #[test]
