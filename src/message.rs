@@ -121,15 +121,20 @@ impl Message {
         false
     }
 
-    /// Returns the mobile originated header information element.
-    pub fn mobile_originated_header(&self) -> Option<&InformationElement> {
-        // TODO de-magicify these references
-        self.information_elements.get(&1)
-    }
-
-    /// Returns the mobile originated payload information element.
-    pub fn mobile_originated_payload(&self) -> Option<&InformationElement> {
-        self.information_elements.get(&2)
+    /// Convert this message into its information elements.
+    ///
+    /// This allows extraction of components of the information elements easily.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sbd::message::Message;
+    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
+    /// let information_elements = message.into_information_elements();
+    /// assert_eq!(2, information_elements.len());
+    /// ```
+    pub fn into_information_elements(self) -> HashMap<u8, InformationElement> {
+        self.information_elements
     }
 }
 

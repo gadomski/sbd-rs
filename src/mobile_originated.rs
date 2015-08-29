@@ -117,14 +117,19 @@ impl Message {
     /// message.into_mobile_originated().unwrap();
     /// ```
     pub fn into_mobile_originated(self) -> Result<MobileOriginated> {
-        let information_elements = self.into_information_elements();
-        let mut mobile_originated: MobileOriginated = Default::default();
+        let mut information_elements = self.into_information_elements();
 
-        let header = match self.mobile_originated_header() {
+        let header = match information_elements.remove(&1) {
             Some(header) => header,
             None => return Err(Error::NoMobileOriginatedHeader),
         };
+        let payload = match information_elements.remove(&2) {
+            Some(payload) => payload,
+            None => return Err(Error::NoMobileOriginatedPayload),
+        };
+
         let mut readable = header.as_contents_reader();
+        let mut mobile_originated: MobileOriginated = Default::default();
         mobile_originated.cdr_reference = try!(readable.read_u32::<BigEndian>());
         let bytes_read = try!(readable.read(&mut mobile_originated.imei));
         if bytes_read != mobile_originated.imei.len() {
@@ -138,10 +143,6 @@ impl Message {
         mobile_originated.mtmsn = try!(readable.read_u16::<BigEndian>());
         mobile_originated.time = try!(readable.read_u32::<BigEndian>());
 
-        let payload = match self.mobile_originated_payload() {
-            Some(payload) => payload,
-            None => return Err(Error::NoMobileOriginatedPayload),
-        };
         mobile_originated.payload = payload.into_contents();
 
         Ok(mobile_originated)
