@@ -9,7 +9,7 @@ use byteorder::{ReadBytesExt, BigEndian};
 
 use {Error, Result};
 
-/// Indicates the success for failure of the SBD session.
+/// Indicates the success or failure of the SBD session.
 enum_from_primitive! {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SessionStatus {
