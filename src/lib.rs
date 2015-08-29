@@ -1,4 +1,4 @@
-//! Parse Iridium Short Burst Data (SBD) messages.
+//! Parse and write Iridium Short Burst Data (SBD) messages.
 //!
 //! Iridium is both a [satellite constellation](https://en.wikipedia.org/wiki/Iridium_satellite_constellation)
 //! and a [company](https://en.wikipedia.org/wiki/Iridium_Communications) that provides satellite
