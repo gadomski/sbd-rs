@@ -3,6 +3,7 @@
 Native rust library to read and write Iridium Short Burt Data (SBD) messages.
 
 [![Build Status](https://travis-ci.org/gadomski/sbd-rs.svg?branch=master)](https://travis-ci.org/gadomski/sbd-rs)
+[![](http://meritbadge.herokuapp.com/sbd)](https://crates.io/crates/sbd)
 
 
 ## Installation
