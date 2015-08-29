@@ -12,7 +12,7 @@ Include the following in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-sbd = "0.0.1"
+sbd = "0.0.2"
 ```
 
 ## Documentation
