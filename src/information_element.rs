@@ -112,6 +112,13 @@ impl InformationElement {
     pub fn as_contents_reader<'a>(&self) -> Cursor<&[u8]> {
         Cursor::new(&self.contents[..])
     }
+
+    /// Convert this information element into its contents.
+    ///
+    /// This consumes the information element.
+    pub fn into_contents(self) -> Vec<u8> {
+        self.contents
+    }
 }
 
 #[cfg(test)]

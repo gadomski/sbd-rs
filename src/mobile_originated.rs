@@ -22,6 +22,7 @@ pub struct MobileOriginated {
     momsn: u16,
     mtmsn: u16,
     time: u32,
+    payload: Vec<u8>,
 }
 
 impl Default for MobileOriginated {
@@ -33,6 +34,7 @@ impl Default for MobileOriginated {
             momsn: 0,
             mtmsn: 0,
             time: 0,
+            payload: Vec::new(),
         }
     }
 }
@@ -93,6 +95,11 @@ impl MobileOriginated {
     pub fn time(&self) -> u32 {
         self.time
     }
+
+    /// Returns the MO payload.
+    pub fn payload(&self) -> &Vec<u8> {
+        &self.payload
+    }
 }
 
 impl Message {
@@ -110,7 +117,9 @@ impl Message {
     /// message.into_mobile_originated().unwrap();
     /// ```
     pub fn into_mobile_originated(self) -> Result<MobileOriginated> {
+        let information_elements = self.into_information_elements();
         let mut mobile_originated: MobileOriginated = Default::default();
+
         let header = match self.mobile_originated_header() {
             Some(header) => header,
             None => return Err(Error::NoMobileOriginatedHeader),
@@ -128,6 +137,13 @@ impl Message {
         mobile_originated.momsn = try!(readable.read_u16::<BigEndian>());
         mobile_originated.mtmsn = try!(readable.read_u16::<BigEndian>());
         mobile_originated.time = try!(readable.read_u32::<BigEndian>());
+
+        let payload = match self.mobile_originated_payload() {
+            Some(payload) => payload,
+            None => return Err(Error::NoMobileOriginatedPayload),
+        };
+        mobile_originated.payload = payload.into_contents();
+
         Ok(mobile_originated)
     }
 }
@@ -161,5 +177,11 @@ mod tests {
         assert_eq!(75, mo.momsn());
         assert_eq!(0, mo.mtmsn());
         assert_eq!(1436465708, mo.time());
+    }
+
+    #[test]
+    fn mo_payload() {
+        let mo = MobileOriginated::from_path("data/0-mo.sbd").unwrap();
+        assert_eq!("test message from pete", str::from_utf8(mo.payload()).unwrap());
     }
 }

@@ -123,7 +123,13 @@ impl Message {
 
     /// Returns the mobile originated header information element.
     pub fn mobile_originated_header(&self) -> Option<&InformationElement> {
+        // TODO de-magicify these references
         self.information_elements.get(&1)
+    }
+
+    /// Returns the mobile originated payload information element.
+    pub fn mobile_originated_payload(&self) -> Option<&InformationElement> {
+        self.information_elements.get(&2)
     }
 }
 
