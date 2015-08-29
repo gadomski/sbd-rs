@@ -9,6 +9,8 @@ use byteorder::{ReadBytesExt, BigEndian};
 
 use {Error, Result};
 
+const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
+
 /// Indicates the success or failure of the SBD session.
 enum_from_primitive! {
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -83,7 +85,7 @@ impl InformationElement {
     /// assert_eq!(31, information_element.len());
     /// ```
     pub fn len(&self) -> u16 {
-        self.length + 3
+        self.length + INFORMATION_ELEMENT_HEADER_LENGTH
     }
 
     /// Returns the id of the information element.
