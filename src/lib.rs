@@ -17,10 +17,12 @@
 pub mod information_element;
 pub mod message;
 pub mod mobile_originated;
+pub mod mobile_terminated;
 
 pub use information_element::InformationElement;
 pub use message::Message;
 pub use mobile_originated::MobileOriginated;
+pub use mobile_terminated::MobileTerminated;
 
 extern crate byteorder;
 #[macro_use]
