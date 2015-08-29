@@ -23,7 +23,6 @@ pub struct Message {
 }
 
 impl Message {
-
     /// Reads in a message from a file path.
     ///
     /// # Examples

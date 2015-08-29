@@ -41,7 +41,6 @@ impl Default for MobileOriginated {
 }
 
 impl MobileOriginated {
-
     /// Reads a mobile originated message from a `Path`.
     ///
     /// # Examples
@@ -104,7 +103,6 @@ impl MobileOriginated {
 }
 
 impl Message {
-
     /// Convert a message into a mobile originated message.
     ///
     /// Returns an error if this message isn't really mobile originated.
