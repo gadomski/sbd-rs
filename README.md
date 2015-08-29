@@ -17,16 +17,8 @@ sbd = "0.0.2"
 
 ## Documentation
 
-The documentation includes examples, which should be used as a reference when developing an application with **sbd**.
-To build the documentation, first clone the git repository, then build the documentation and open it:
-
-```bash
-$ git clone https://github.com/gadomski/sbd-rs
-$ cd sbd-rs
-$ cargo doc --open
-```
-
-This will open the documentation in your browser.
+The documentation is available [here](http://gadomski.github.com/sbd-rs).
+It includes examples, which should be used as a reference when developing an application with **sbd**.
 
 
 ## What is Iridium? What is SBD?
