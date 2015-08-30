@@ -96,9 +96,9 @@ impl InformationElement {
     }
 
     /// Returns the id of the information element.
-    pub fn id(&self) -> InformationElementType {
-        self.id
-    }
+    pub fn id(&self) -> InformationElementType { self.id }
+    /// Returns a reference to this information element's contents.
+    pub fn contents_ref(&self) -> &[u8] { &self.contents[..] }
 }
 
 #[cfg(test)]

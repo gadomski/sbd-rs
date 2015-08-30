@@ -5,12 +5,13 @@
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{Cursor, Read, Write};
 use std::str;
 use std::path::Path;
 
 use byteorder::{BigEndian, ReadBytesExt};
-use chrono::{DateTime, TimeZone, UTC};
+use chrono::{DateTime, Duration, TimeZone, UTC};
+use num::traits::FromPrimitive;
 
 use super::{Error, Result};
 use super::information_element::{InformationElement, InformationElementType};
@@ -148,6 +149,26 @@ impl Message {
         if try!(readable.take(1).read_to_end(&mut Vec::new())) != 0 {
             return Err(Error::Oversized);
         }
+
+        let header = match information_elements.remove(&InformationElementType::MobileOriginatedHeader) {
+            Some(ie) => ie,
+            None => return Err(Error::MissingMobileOriginatedHeader),
+        };
+        let mut cursor = &mut Cursor::new(header.contents_ref());
+        message.cdr_reference = try!(cursor.read_u32::<BigEndian>());
+        let bytes_read = try!(cursor.take(message.imei.0.len() as u64).read(&mut message.imei.0));
+        if bytes_read != message.imei.0.len() {
+            return Err(Error::InvalidImei);
+        }
+        message.session_status = match SessionStatus::from_u8(try!(cursor.read_u8())) {
+            Some(status) => status,
+            None => SessionStatus::Unknown,
+        };
+        message.momsn = try!(cursor.read_u16::<BigEndian>());
+        message.mtmsn = try!(cursor.read_u16::<BigEndian>());
+        message.time_of_session = UTC.ymd(1970, 1, 1).and_hms(0, 0, 0) +
+            Duration::seconds(try!(cursor.read_u32::<BigEndian>()) as i64);
+
         Ok(message)
     }
 
@@ -230,12 +251,12 @@ mod tests {
     fn values() {
         let message = Message::from_path("data/0-mo.sbd").unwrap();
         assert_eq!(1, message.protocol_revision_number());
-        assert_eq!(1, message.cdr_reference());
-        assert_eq!("0", message.imei());
+        assert_eq!(1894516585, message.cdr_reference());
+        assert_eq!("300234063904190", message.imei());
         assert_eq!(SessionStatus::Ok, message.session_status());
-        assert_eq!(1, message.momsn());
-        assert_eq!(1, message.mtmsn());
-        assert_eq!(UTC.ymd(2000, 1, 1).and_hms(1, 2, 3), message.time_of_session());
+        assert_eq!(75, message.momsn());
+        assert_eq!(0, message.mtmsn());
+        assert_eq!(UTC.ymd(2015, 7, 9).and_hms(18, 15, 8), message.time_of_session());
     }
 
     #[test]
