@@ -5,8 +5,9 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::result;
 
-use glob::glob;
+use glob::{glob, Paths, PatternError};
 
 use super::{Message, Result};
 
@@ -18,7 +19,9 @@ pub struct Storage {
 }
 
 /// An interator over the messages in a `Storage`.
-pub struct StorageIterator;
+pub struct StorageIterator {
+    paths: Option<Paths>,
+}
 
 /// The object yielded by a `StorageIterator`.
 pub struct StorageEntry;
@@ -31,12 +34,24 @@ impl Iterator for StorageIterator {
     }
 }
 
+impl StorageIterator {
+    fn new(storage: &Storage) -> StorageIterator {
+        let paths = match storage.glob() {
+            Ok(paths) => Some(paths),
+            Err(_) => None,
+        };
+        StorageIterator {
+            paths: paths,
+        }
+    }
+}
+
 impl<'a> IntoIterator for &'a Storage {
     type Item = StorageEntry;
     type IntoIter = StorageIterator;
 
     fn into_iter(self) -> Self::IntoIter {
-        StorageIterator
+        StorageIterator::new(self)
     }
 }
 
@@ -78,16 +93,11 @@ impl Storage {
         Ok(path_buf)
     }
 
-    pub fn retrieve_all(&self) -> Result<Vec<Message>> {
-        let mut messages: Vec<Message> = Vec::new();
+    fn glob(&self) -> result::Result<Paths, PatternError> {
         let mut path_buf = self.root.clone();
         path_buf.push("**");
         path_buf.push(format!("*{}", SBD_EXTENSION));
-        for entry in try!(glob(&path_buf.to_str().unwrap())) {
-            messages.push(try!(Message::from_path(try!(entry))));
-        }
-        messages.sort();
-        Ok(messages)
+        glob(&path_buf.to_str().unwrap())
     }
 }
 
