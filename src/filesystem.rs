@@ -82,6 +82,7 @@ impl Storage {
         for entry in try!(glob(&path_buf.to_str().unwrap())) {
             messages.push(try!(Message::from_path(try!(entry))));
         }
+        messages.sort();
         Ok(messages)
     }
 }

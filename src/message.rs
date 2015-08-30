@@ -3,6 +3,7 @@
 //! Though messages technically come in two flavors, mobile originated and mobile terminated, we
 //! only handle mobile originated messages in this library.
 
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Cursor, Read, Write};
@@ -23,7 +24,7 @@ const ASCII_ZERO: u8 = 48;
 /// The protocol number of an SBD message.
 ///
 /// At this point, this can *only* be one.
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, Eq, PartialEq)]
 struct ProtocolRevisionNumber(u8);
 
 impl ProtocolRevisionNumber {
@@ -34,7 +35,7 @@ impl ProtocolRevisionNumber {
 }
 
 /// The modem IMEI identifier.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 struct Imei([u8; 15]);
 
 impl Default for Imei {
@@ -56,7 +57,7 @@ impl Imei {
 
 /// The status of a mobile-originated session.
 enum_from_primitive! {
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SessionStatus {
     Ok = 0,
     OkMobileTerminatedTooLarge = 1,
@@ -77,7 +78,7 @@ impl Default for SessionStatus {
 }
 
 /// A mobile-origined Iridium SBD message.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Message {
     protocol_revision_number: ProtocolRevisionNumber,
     cdr_reference: u32,
@@ -101,6 +102,18 @@ impl Default for Message {
             time_of_session: UTC.ymd(1970, 1, 1).and_hms(0, 0, 0),
             payload: Vec::new(),
         }
+    }
+}
+
+impl PartialOrd for Message {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Message {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.time_of_session.cmp(&other.time_of_session)
     }
 }
 
@@ -316,5 +329,12 @@ mod tests {
         cursor.set_position(0);
         let message2 = Message::read_from(cursor).unwrap();
         assert_eq!(message, message2);
+    }
+
+    #[test]
+    fn order() {
+        let default: Message = Default::default();
+        let message = Message::from_path("data/0-mo.sbd").unwrap();
+        assert!(message > default);
     }
 }
