@@ -20,6 +20,26 @@ pub struct Storage {
 /// An interator over the messages in a `Storage`.
 pub struct StorageIterator;
 
+/// The object yielded by a `StorageIterator`.
+pub struct StorageEntry;
+
+impl Iterator for StorageIterator {
+    type Item = StorageEntry;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        None
+    }
+}
+
+impl<'a> IntoIterator for &'a Storage {
+    type Item = StorageEntry;
+    type IntoIter = StorageIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        StorageIterator
+    }
+}
+
 impl Storage {
     /// Creates a new storage manager for a given root directory.
     ///
@@ -58,22 +78,6 @@ impl Storage {
         Ok(path_buf)
     }
 
-    /// Retrieves all messages from the storage.
-    ///
-    /// Retrieval is just a blind scan of all files with a `.sbd` extension inside the root
-    /// directory, which are then parsed into `Messages`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if this storage's root directory can't be turned into a glob string.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use sbd::filesystem::Storage;
-    /// let storage = Storage::new("/var/iridium");
-    /// let messages = storage.retrieve_all().unwrap();
-    /// ```
     pub fn retrieve_all(&self) -> Result<Vec<Message>> {
         let mut messages: Vec<Message> = Vec::new();
         let mut path_buf = self.root.clone();
@@ -113,7 +117,7 @@ mod tests {
         let storage = Storage::new(TempDir::new("").unwrap().path());
         let message: Message = Default::default();
         storage.store(&message).unwrap();
-        let messages = storage.retrieve_all().unwrap();
+        let messages = storage.into_iter().collect::<Vec<StorageEntry>>();
         assert_eq!(1, messages.len());
     }
 }
