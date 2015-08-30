@@ -13,6 +13,9 @@ pub struct Storage {
     root: PathBuf,
 }
 
+/// An interator over the messages in a `Storage`.
+pub struct StorageIterator;
+
 impl Storage {
     /// Creates a new storage manager for a given root directory.
     ///
@@ -50,6 +53,19 @@ impl Storage {
         try!(message.write_to(&mut file));
         Ok(path_buf)
     }
+
+    /// Retrieves all messages from the storage.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sbd::filesystem::Storage;
+    /// let storage = Storage::new("/var/iridium");
+    /// let messages = storage.retrieve_all().unwrap();
+    /// ```
+    pub fn retrieve_all(&self) -> Result<Vec<Message>> {
+        Ok(Vec::new())
+    }
 }
 
 #[cfg(test)]
@@ -71,5 +87,14 @@ mod tests {
         let message: Message = Default::default();
         let pathbuf = storage.store(&message).unwrap();
         Message::from_path(pathbuf).unwrap();
+    }
+
+    #[test]
+    fn iterate_over_messages() {
+        let storage = Storage::new(TempDir::new("").unwrap().path());
+        let message: Message = Default::default();
+        storage.store(&message).unwrap();
+        let messages = storage.retrieve_all().unwrap();
+        assert_eq!(1, messages.len());
     }
 }
