@@ -1,25 +1,100 @@
-//! Generic message handling.
+//! Module for reading and writing SBD messages.
 //!
-//! This module provides the ability to read SBD messages from and write SBD messages to streams.
+//! Though messages technically come in two flavors, mobile originated and mobile terminated, we
+//! only handle mobile originated messages in this library.
 
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::str;
 use std::path::Path;
 
-use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
+use byteorder::{BigEndian, ReadBytesExt};
+use chrono::{DateTime, TimeZone, UTC};
 
-use {Error, Result};
-use information_element::{InformationElement, InformationElementType};
+use super::{Error, Result};
+use super::information_element::{InformationElement, InformationElementType};
 
-const MESSAGE_HEADER_LENGTH: usize = 3;
+/// The protocol number of an SBD message.
+///
+/// At this point, this can *only* be one.
+#[derive(Debug, Default, PartialEq)]
+struct ProtocolRevisionNumber(u8);
 
-/// An SBD message.
-#[derive(Debug, Default)]
+impl ProtocolRevisionNumber {
+    /// Returns true if this is a valid protocol revision number.
+    pub fn valid(&self) -> bool {
+        self.0 == 1
+    }
+}
+
+/// The modem IMEI identifier.
+#[derive(Debug, PartialEq)]
+struct Imei([u8; 15]);
+
+impl Default for Imei {
+    fn default() -> Imei {
+        Imei([0; 15])
+    }
+}
+
+impl Imei {
+    /// Returns this IMEI number as a `str`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the string is not valid utf8.
+    fn as_str(&self) -> &str {
+        str::from_utf8(&self.0).unwrap()
+    }
+}
+
+/// The status of a mobile-originated session.
+enum_from_primitive! {
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum SessionStatus {
+    Ok = 0,
+    OkMobileTerminatedTooLarge = 1,
+    OkLocationUnacceptableQuality = 2,
+    Timeout = 10,
+    MobileOriginatedTooLarge = 12,
+    RFLinkLoss = 13,
+    IMEIProtocolAnomaly = 14,
+    Prohibited = 15,
+    Unknown,
+}
+}
+
+impl Default for SessionStatus {
+    fn default() -> SessionStatus {
+        SessionStatus::Unknown
+    }
+}
+
+/// A mobile-origined Iridium SBD message.
+#[derive(Debug, PartialEq)]
 pub struct Message {
-    protocol_revision_number: u8,
-    overall_message_length: u16,
-    information_elements: HashMap<InformationElementType, InformationElement>,
+    protocol_revision_number: ProtocolRevisionNumber,
+    cdr_reference: u32,
+    imei: Imei,
+    session_status: SessionStatus,
+    momsn: u16,
+    mtmsn: u16,
+    time_of_session: DateTime<UTC>,
+}
+
+impl Default for Message {
+    fn default() -> Message {
+        Message {
+            protocol_revision_number: Default::default(),
+            cdr_reference: Default::default(),
+            imei: Default::default(),
+            session_status: Default::default(),
+            momsn: Default::default(),
+            mtmsn: Default::default(),
+            time_of_session: UTC.ymd(1970, 1, 1).and_hms(0, 0, 0),
+        }
+    }
 }
 
 impl Message {
@@ -49,11 +124,14 @@ impl Message {
     /// let message = Message::read_from(file).unwrap();
     pub fn read_from<R: Read>(mut readable: R) -> Result<Message> {
         let mut message: Message = Default::default();
-        message.protocol_revision_number = try!(readable.read_u8());
-        if message.protocol_revision_number != 1 {
-            return Err(Error::InvalidProtocolRevisionNumber(message.protocol_revision_number));
+
+        message.protocol_revision_number = ProtocolRevisionNumber(try!(readable.read_u8()));
+        if !message.protocol_revision_number.valid() {
+            return Err(Error::InvalidProtocolRevisionNumber(message.protocol_revision_number.0));
         }
-        message.overall_message_length = try!(readable.read_u16::<BigEndian>());
+        let overall_message_length = try!(readable.read_u16::<BigEndian>());
+
+        let mut information_elements: HashMap<InformationElementType, InformationElement> = HashMap::new();
         let mut bytes_read = 0u16;
         loop {
             let ie = match InformationElement::read_from(&mut readable) {
@@ -61,79 +139,16 @@ impl Message {
                 Err(e) => return Err(e),
             };
             bytes_read += ie.len();
-            message.information_elements.insert(ie.id(), ie);
-            if bytes_read >= message.overall_message_length {
+            information_elements.insert(ie.id(), ie);
+            if bytes_read >= overall_message_length {
                 break
             }
         }
+
         if try!(readable.take(1).read_to_end(&mut Vec::new())) != 0 {
             return Err(Error::Oversized);
         }
         Ok(message)
-    }
-
-    /// Returns the overall message length of the SBD message.
-    ///
-    /// This value *includes* the initial three bytes, whereas the `overall_message_length`
-    /// value in the SBD header does *not* include those bytes.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sbd::message::Message;
-    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
-    /// assert_eq!(59, message.len());
-    /// ```
-    pub fn len(&self) -> usize {
-        self.overall_message_length as usize + MESSAGE_HEADER_LENGTH
-    }
-
-    /// Returns true if this message is mobile originated.
-    ///
-    /// This is deteremined by the set of information elements in this message.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sbd::message::Message;
-    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
-    /// assert!(message.is_mobile_originated());
-    /// ```
-    pub fn is_mobile_originated(&self) -> bool {
-        // TODO this is a placeholder
-        true
-    }
-
-    /// Returns true if this message is mobile terminated.
-    ///
-    /// This is deteremined by the set of information elements in this message.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sbd::message::Message;
-    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
-    /// assert!(!message.is_mobile_terminated());
-    /// ```
-    pub fn is_mobile_terminated(&self) -> bool {
-        // TODO this is a placeholder
-        false
-    }
-
-    /// Convert this message into its information elements.
-    ///
-    /// This allows extraction of components of the information elements easily.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sbd::message::Message;
-    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
-    /// let information_elements = message.into_information_elements();
-    /// assert_eq!(2, information_elements.len());
-    /// ```
-    pub fn into_information_elements(self) -> HashMap<InformationElementType, InformationElement> {
-        self.information_elements
     }
 
     /// Write this message back to a object that can `Write`.
@@ -148,16 +163,23 @@ impl Message {
     /// message.write_to(&mut cursor);
     /// ```
     pub fn write_to<W: Write>(&self, w: &mut W) -> Result<()> {
-        try!(w.write_u8(self.protocol_revision_number));
-        try!(w.write_u16::<BigEndian>(self.overall_message_length));
-        for information_element in self.information_elements.values() {
-            try!(w.write_u8(information_element.id() as u8));
-            let contents = information_element.contents_ref();
-            try!(w.write_u16::<BigEndian>(contents.len() as u16));
-            try!(w.write_all(&contents[..]));
-        }
         Ok(())
     }
+
+    /// Returns this message's protocol revision number.
+    pub fn protocol_revision_number(&self) -> u8 { self.protocol_revision_number.0 }
+    /// Returns this message's IMEI number as a string.
+    pub fn imei(&self) -> &str { self.imei.as_str() }
+    /// Returns this message's cdr reference number (also called auto id).
+    pub fn cdr_reference(&self) -> u32 { self.cdr_reference }
+    /// Returns this message's session status.
+    pub fn session_status(&self) -> SessionStatus { self.session_status }
+    /// Returns this message's mobile originated message number.
+    pub fn momsn(&self) -> u16 { self.momsn }
+    /// Returns this message's mobile terminated message number.
+    pub fn mtmsn(&self) -> u16 { self.mtmsn }
+    /// Returns this message's time of session.
+    pub fn time_of_session(&self) -> DateTime<UTC> { self.time_of_session }
 }
 
 #[cfg(test)]
@@ -166,6 +188,8 @@ mod tests {
 
     use std::fs::File;
     use std::io::{Cursor, Read};
+
+    use chrono::{TimeZone, UTC};
 
     #[test]
     fn from_path() {
@@ -189,20 +213,6 @@ mod tests {
     }
 
     #[test]
-    fn len() {
-        let message = Message::from_path("data/0-mo.sbd").unwrap();
-        assert_eq!(59, message.len());
-    }
-
-    #[test]
-    fn is_mobile_originated() {
-        let message = Message::from_path("data/0-mo.sbd").unwrap();
-        assert!(message.is_mobile_originated());
-        assert!(!message.is_mobile_terminated());
-        // TODO try to get a mobile terminated message to test the other way
-    }
-
-    #[test]
     fn undersized() {
         let file = File::open("data/0-mo.sbd").unwrap();
         let readable = file.take(58);
@@ -217,11 +227,24 @@ mod tests {
     }
 
     #[test]
+    fn values() {
+        let message = Message::from_path("data/0-mo.sbd").unwrap();
+        assert_eq!(1, message.protocol_revision_number());
+        assert_eq!(1, message.cdr_reference());
+        assert_eq!("0", message.imei());
+        assert_eq!(SessionStatus::Ok, message.session_status());
+        assert_eq!(1, message.momsn());
+        assert_eq!(1, message.mtmsn());
+        assert_eq!(UTC.ymd(2000, 1, 1).and_hms(1, 2, 3), message.time_of_session());
+    }
+
+    #[test]
     fn write() {
         let message = Message::from_path("data/0-mo.sbd").unwrap();
         let mut cursor = Cursor::new(Vec::new());
         message.write_to(&mut cursor).unwrap();
         cursor.set_position(0);
-        Message::read_from(cursor).unwrap();
+        let message2 = Message::read_from(cursor).unwrap();
+        assert_eq!(message, message2);
     }
 }

@@ -11,18 +11,14 @@
 //! messages are delivered either to an email address via MIME attachment, or directly to a given
 //! IP address and port via TCP; this second method is called DirectIP.
 //!
-//! This is a simple library for reading SBD messages from a stream, decoding their headers and
-//! data payloads, and writing them back to a stream.
+//! This is a simple library for reading mobile originated SBD messages from a stream, decoding
+//! their headers and data payloads, and writing them back to a stream. This library does not
+//! handle mobile terminated messages.
 
-pub mod information_element;
+mod information_element;
 pub mod message;
-pub mod mobile_originated;
-pub mod mobile_terminated;
 
-pub use information_element::InformationElement;
 pub use message::Message;
-pub use mobile_originated::MobileOriginated;
-pub use mobile_terminated::MobileTerminated;
 
 extern crate byteorder;
 extern crate chrono;

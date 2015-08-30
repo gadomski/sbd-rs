@@ -3,30 +3,14 @@
 //! Information elements come after the SBD header. They come in many types, including more
 //! header-type information and the actual data payload.
 
-use std::io::{Cursor, Read};
+use std::io::Read;
 
 use byteorder::{ReadBytesExt, BigEndian};
 use num::traits::FromPrimitive;
 
-use {Error, Result};
+use super::{Error, Result};
 
 const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
-
-/// Indicates the success or failure of the SBD session.
-enum_from_primitive! {
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum SessionStatus {
-    Ok = 0,
-    OkMobileTerminatedTooLarge = 1,
-    OkLocationUnacceptableQuality = 2,
-    Timeout = 10,
-    MobileOriginatedTooLarge = 12,
-    RFLinkLoss = 13,
-    IMEIProtocolAnomaly = 14,
-    Prohibited = 15,
-    Unknown,
-}
-}
 
 /// Enum to name the information element ids.
 enum_from_primitive! {
@@ -61,7 +45,6 @@ pub struct InformationElement {
 }
 
 impl InformationElement {
-
     /// Reads an information element from something that implements `Read`.
     ///
     /// # Examples
@@ -115,38 +98,6 @@ impl InformationElement {
     /// Returns the id of the information element.
     pub fn id(&self) -> InformationElementType {
         self.id
-    }
-
-    /// Returns a object that can `Read` over the contents of this information element.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io::{Read, Seek, SeekFrom};
-    /// # use std::fs::File;
-    /// # use sbd::information_element::InformationElement;
-    /// # let mut file = File::open("data/0-mo.sbd").unwrap();
-    /// # file.seek(SeekFrom::Start(3)).unwrap();
-    /// # let readable = file.take(31);
-    /// let information_element = InformationElement::read_from(readable).unwrap();
-    /// let mut readable = information_element.as_contents_reader();
-    /// let mut buffer: Vec<u8> = Vec::new();
-    /// readable.read_to_end(&mut buffer);
-    /// ```
-    pub fn as_contents_reader<'a>(&self) -> Cursor<&[u8]> {
-        Cursor::new(&self.contents[..])
-    }
-
-    /// Return a reference to this information element's contents.
-    pub fn contents_ref(&self) -> &Vec<u8> {
-        &self.contents
-    }
-
-    /// Convert this information element into its contents.
-    ///
-    /// This consumes the information element.
-    pub fn into_contents(self) -> Vec<u8> {
-        self.contents
     }
 }
 
