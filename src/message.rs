@@ -16,8 +16,9 @@ use num::traits::FromPrimitive;
 use super::{Error, Result};
 use super::information_element::{InformationElement, InformationElementType};
 
-const HEADER_LENGTH: u16 = 28;
-const PAYLOAD_HEADER_LENGTH: u16 = 3;
+const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
+const MOBILE_ORIGINATED_HEADER_LENGTH: u16 = 28;
+const ASCII_ZERO: u8 = 48;
 
 /// The protocol number of an SBD message.
 ///
@@ -38,7 +39,7 @@ struct Imei([u8; 15]);
 
 impl Default for Imei {
     fn default() -> Imei {
-        Imei([0; 15])
+        Imei([ASCII_ZERO; 15])
     }
 }
 
@@ -91,7 +92,7 @@ pub struct Message {
 impl Default for Message {
     fn default() -> Message {
         Message {
-            protocol_revision_number: Default::default(),
+            protocol_revision_number: ProtocolRevisionNumber(1),
             cdr_reference: Default::default(),
             imei: Default::default(),
             session_status: Default::default(),
@@ -198,7 +199,7 @@ impl Message {
         try!(w.write_u8(self.protocol_revision_number.0));
         try!(w.write_u16::<BigEndian>(self.overall_message_length()));
         try!(w.write_u8(InformationElementType::MobileOriginatedHeader as u8));
-        try!(w.write_u16::<BigEndian>(HEADER_LENGTH));
+        try!(w.write_u16::<BigEndian>(MOBILE_ORIGINATED_HEADER_LENGTH));
         try!(w.write_u32::<BigEndian>(self.cdr_reference));
         try!(w.write_all(&self.imei.0));
         try!(w.write_u8(self.session_status as u8));
@@ -234,7 +235,8 @@ impl Message {
     /// The whole message is actually three bytes longer than this value, thanks to the message
     /// header itself.
     fn overall_message_length(&self) -> u16 {
-        HEADER_LENGTH + PAYLOAD_HEADER_LENGTH + self.payload.len() as u16
+        INFORMATION_ELEMENT_HEADER_LENGTH + MOBILE_ORIGINATED_HEADER_LENGTH +
+            INFORMATION_ELEMENT_HEADER_LENGTH + self.payload.len() as u16
     }
 }
 
@@ -299,6 +301,16 @@ mod tests {
     #[test]
     fn write() {
         let message = Message::from_path("data/0-mo.sbd").unwrap();
+        let mut cursor = Cursor::new(Vec::new());
+        message.write_to(&mut cursor).unwrap();
+        cursor.set_position(0);
+        let message2 = Message::read_from(cursor).unwrap();
+        assert_eq!(message, message2);
+    }
+
+    #[test]
+    fn write_default() {
+        let message: Message = Default::default();
         let mut cursor = Cursor::new(Vec::new());
         message.write_to(&mut cursor).unwrap();
         cursor.set_position(0);
