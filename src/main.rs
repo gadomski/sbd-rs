@@ -2,8 +2,11 @@
 
 extern crate docopt;
 extern crate rustc_serialize;
+extern crate sbd;
 
 use docopt::Docopt;
+
+use sbd::filesystem::Storage;
 
 const USAGE: &'static str = "
 Iridium Short Burst Data (SBD) message utility.
@@ -20,6 +23,7 @@ Options:
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
+    cmd_list: bool,
     arg_directory: String,
 }
 
@@ -29,5 +33,7 @@ fn main() {
         .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
         .and_then(|d| d.decode())
         .unwrap_or_else(|e| e.exit());
-    println!("{:?}", args);
+    if args.cmd_list {
+        Storage::new(args.arg_directory);
+    }
 }
