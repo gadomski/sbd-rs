@@ -24,13 +24,36 @@ pub struct StorageIterator {
 }
 
 /// The object yielded by a `StorageIterator`.
-pub struct StorageEntry;
+pub struct StorageEntry {
+    pub message: Message,
+    pub path_buf: PathBuf,
+}
 
 impl Iterator for StorageIterator {
     type Item = StorageEntry;
 
     fn next(&mut self) -> Option<Self::Item> {
-        None
+        let mut paths = match self.paths {
+            Some(ref mut paths) => paths,
+            None => return None,
+        };
+        loop {
+            let glob_result = match paths.next() {
+                Some(result) => result,
+                None => return None,
+            };
+            let path_buf = match glob_result {
+                Ok(path_buf) => path_buf,
+                Err(_) => continue,
+            };
+            match Message::from_path(&path_buf) {
+                Ok(message) => return Some(StorageEntry {
+                    message: message,
+                    path_buf: path_buf,
+                }),
+                Err(_) => continue,
+            };
+        }
     }
 }
 
