@@ -9,12 +9,15 @@ use std::io::{Cursor, Read, Write};
 use std::str;
 use std::path::Path;
 
-use byteorder::{BigEndian, ReadBytesExt};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use chrono::{DateTime, Duration, TimeZone, UTC};
 use num::traits::FromPrimitive;
 
 use super::{Error, Result};
 use super::information_element::{InformationElement, InformationElementType};
+
+const HEADER_LENGTH: u16 = 28;
+const PAYLOAD_HEADER_LENGTH: u16 = 3;
 
 /// The protocol number of an SBD message.
 ///
@@ -192,6 +195,20 @@ impl Message {
     /// message.write_to(&mut cursor);
     /// ```
     pub fn write_to<W: Write>(&self, w: &mut W) -> Result<()> {
+        try!(w.write_u8(self.protocol_revision_number.0));
+        try!(w.write_u16::<BigEndian>(self.overall_message_length()));
+        try!(w.write_u8(InformationElementType::MobileOriginatedHeader as u8));
+        try!(w.write_u16::<BigEndian>(HEADER_LENGTH));
+        try!(w.write_u32::<BigEndian>(self.cdr_reference));
+        try!(w.write_all(&self.imei.0));
+        try!(w.write_u8(self.session_status as u8));
+        try!(w.write_u16::<BigEndian>(self.momsn));
+        try!(w.write_u16::<BigEndian>(self.mtmsn));
+        try!(w.write_u32::<BigEndian>(self.time_of_session.timestamp() as u32));
+        try!(w.write_u8(InformationElementType::MobileOriginatedPayload as u8));
+        // TODO can we check to make sure the payload is of appropriate size?
+        try!(w.write_u16::<BigEndian>(self.payload.len() as u16));
+        try!(w.write_all(&self.payload[..]));
         Ok(())
     }
 
@@ -211,6 +228,14 @@ impl Message {
     pub fn time_of_session(&self) -> DateTime<UTC> { self.time_of_session }
     /// Returns a reference to this message's payload.
     pub fn payload_ref(&self) -> &Vec<u8> { &self.payload }
+
+    /// Returns the overall message length, as is contained in the message's header.
+    ///
+    /// The whole message is actually three bytes longer than this value, thanks to the message
+    /// header itself.
+    fn overall_message_length(&self) -> u16 {
+        HEADER_LENGTH + PAYLOAD_HEADER_LENGTH + self.payload.len() as u16
+    }
 }
 
 #[cfg(test)]

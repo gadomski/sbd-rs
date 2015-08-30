@@ -46,18 +46,6 @@ pub struct InformationElement {
 
 impl InformationElement {
     /// Reads an information element from something that implements `Read`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::io::{Read, Seek, SeekFrom};
-    /// use std::fs::File;
-    /// use sbd::information_element::InformationElement;
-    /// let mut file = File::open("data/0-mo.sbd").unwrap();
-    /// file.seek(SeekFrom::Start(3)).unwrap();
-    /// let readable = file.take(31);
-    /// InformationElement::read_from(readable).unwrap();
-    /// ```
     pub fn read_from<R: Read>(mut readable: R) -> Result<InformationElement> {
         let mut information_element: InformationElement = Default::default();
         information_element.id = match InformationElementType::from_u8(try!(readable.read_u8())) {
@@ -78,19 +66,6 @@ impl InformationElement {
     ///
     /// This is not the same as the internal length, but is rather the length of the contents plus
     /// the length of the IE header.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io::{Read, Seek, SeekFrom};
-    /// # use std::fs::File;
-    /// # use sbd::information_element::InformationElement;
-    /// # let mut file = File::open("data/0-mo.sbd").unwrap();
-    /// # file.seek(SeekFrom::Start(3)).unwrap();
-    /// # let readable = file.take(31);
-    /// let information_element = InformationElement::read_from(readable).unwrap();
-    /// assert_eq!(31, information_element.len());
-    /// ```
     pub fn len(&self) -> u16 {
         self.length + INFORMATION_ELEMENT_HEADER_LENGTH
     }
