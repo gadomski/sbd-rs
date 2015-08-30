@@ -3,8 +3,6 @@
 extern crate docopt;
 extern crate rustc_serialize;
 
-use std::path::PathBuf;
-
 use docopt::Docopt;
 
 const USAGE: &'static str = "
@@ -22,7 +20,7 @@ Options:
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
-    arg_directory: PathBuf,
+    arg_directory: String,
 }
 
 #[cfg_attr(test, allow(dead_code))]
