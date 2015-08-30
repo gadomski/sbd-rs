@@ -3,7 +3,7 @@
 //! SBD messages really can come in two forms, mobile-originated and mobile-terminated. This module
 //! provides functionality for the MO subset of messages.
 
-use std::io::{Read, Write};
+use std::io::Read;
 use std::path::Path;
 
 use byteorder::{ReadBytesExt, BigEndian};
@@ -51,34 +51,6 @@ impl MobileOriginated {
     /// ```
     pub fn from_path<P: AsRef<Path>>(path: P) -> Result<MobileOriginated> {
         Ok(try!(try!(Message::from_path(path)).into_mobile_originated()))
-    }
-
-    /// Reads a mobile originated message from a `Read`.
-    /// 
-    /// # Examples
-    ///
-    /// ```
-    /// use sbd::mobile_originated::MobileOriginated;
-    /// use std::fs::File;
-    /// let file = File::open("data/0-mo.sbd");
-    /// MobileOriginated::read_from(&mut file);
-    pub fn read_from<R: Read>(readable: &mut R) -> Result<MobileOriginated> {
-        Ok(try!(try!(Message::read_from(readable)).into_mobile_originated()))
-    }
-
-    /// Writes this mobile originated to a object that can `Write`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::io::Cursor;
-    /// use sbd::mobile_originated::MobileOriginated;
-    /// let mobile_originated = MobileOriginated::from_path("data/0-mo.sbd").unwrap();
-    /// let cursor = Cursor::new(Vec::new());
-    /// mobile_originated.write_to(&mut cursor);
-    /// ```
-    pub fn write_to<W: Write>(&self, writeable: &mut W) -> Result<()> {
-        Ok(())
     }
 
     /// Returns the cdr reference, also called the auto ID.
@@ -182,7 +154,6 @@ impl Message {
 mod tests {
     use super::*;
 
-    use std::io::Cursor;
     use std::str;
 
     use chrono::{TimeZone, UTC};
@@ -216,14 +187,5 @@ mod tests {
     fn mo_payload() {
         let mo = MobileOriginated::from_path("data/0-mo.sbd").unwrap();
         assert_eq!("test message from pete", str::from_utf8(mo.payload()).unwrap());
-    }
-
-    #[test]
-    fn write_to() {
-        let mobile_originated = MobileOriginated::from_path("data/0-mo.sbd").unwrap();
-        let mut cursor = Cursor::new(Vec::new());
-        mobile_originated.write_to(&mut cursor).unwrap();
-        cursor.set_position(0);
-        MobileOriginated::read_from(&mut cursor).unwrap();
     }
 }
