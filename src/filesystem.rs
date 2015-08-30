@@ -6,7 +6,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use glob::glob;
+
 use super::{Message, Result};
+
+const SBD_EXTENSION: &'static str = ".sbd";
 
 /// A structure for managing storing and retriving SBD messages on a filesystem.
 pub struct Storage {
@@ -48,13 +52,20 @@ impl Storage {
         path_buf.push(message.time_of_session().format("%y").to_string());
         path_buf.push(message.time_of_session().format("%m").to_string());
         try!(fs::create_dir_all(&path_buf));
-        path_buf.push(message.time_of_session().format("%y%m%d_%H%M%S.sbd").to_string());
+        path_buf.push(message.time_of_session().format(&format!("%y%m%d_%H%M%S{}", SBD_EXTENSION)).to_string());
         let mut file = try!(fs::File::create(&path_buf));
         try!(message.write_to(&mut file));
         Ok(path_buf)
     }
 
     /// Retrieves all messages from the storage.
+    ///
+    /// Retrieval is just a blind scan of all files with a `.sbd` extension inside the root
+    /// directory, which are then parsed into `Messages`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this storage's root directory can't be turned into a glob string.
     ///
     /// # Examples
     ///
@@ -64,7 +75,14 @@ impl Storage {
     /// let messages = storage.retrieve_all().unwrap();
     /// ```
     pub fn retrieve_all(&self) -> Result<Vec<Message>> {
-        Ok(Vec::new())
+        let mut messages: Vec<Message> = Vec::new();
+        let mut path_buf = self.root.clone();
+        path_buf.push("**");
+        path_buf.push(format!("*{}", SBD_EXTENSION));
+        for entry in try!(glob(&path_buf.to_str().unwrap())) {
+            messages.push(try!(Message::from_path(try!(entry))));
+        }
+        Ok(messages)
     }
 }
 

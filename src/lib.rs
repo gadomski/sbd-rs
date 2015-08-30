@@ -25,6 +25,7 @@ extern crate byteorder;
 extern crate chrono;
 #[macro_use]
 extern crate enum_primitive;
+extern crate glob;
 extern crate num;
 extern crate tempdir;
 
@@ -36,15 +37,29 @@ pub enum Error {
     IoError(std::io::Error),
     InvalidImei,
     InvalidProtocolRevisionNumber(u8),
+    GlobError(glob::GlobError),
     MissingMobileOriginatedHeader,
     MissingMobileOriginatedPayload,
     Oversized, // Oversized doesn't demand a size since we don't want to find out how much there really is
+    PatternError(glob::PatternError),
     Undersized(usize),
 }
 
 impl From<byteorder::Error> for Error {
     fn from(err: byteorder::Error) -> Error {
         Error::ByteorderError(err)
+    }
+}
+
+impl From<glob::PatternError> for Error {
+    fn from(err: glob::PatternError) -> Error {
+        Error::PatternError(err)
+    }
+}
+
+impl From<glob::GlobError> for Error {
+    fn from(err: glob::GlobError) -> Error {
+        Error::GlobError(err)
     }
 }
 
