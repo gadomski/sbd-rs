@@ -11,6 +11,7 @@ license = "MIT"
 
 [dependencies]
 byteorder = "0.3"
+chrono = "0.2"
 enum_primitive = "0.1"
 num = "0.1"
-chrono = "0.2"
+tempdir = "0.3"

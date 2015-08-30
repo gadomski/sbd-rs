@@ -16,6 +16,7 @@
 //! handle mobile terminated messages.
 
 mod information_element;
+pub mod filesystem;
 pub mod message;
 
 pub use message::Message;
@@ -25,6 +26,7 @@ extern crate chrono;
 #[macro_use]
 extern crate enum_primitive;
 extern crate num;
+extern crate tempdir;
 
 use std::result;
 
