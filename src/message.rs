@@ -82,6 +82,7 @@ pub struct Message {
     momsn: u16,
     mtmsn: u16,
     time_of_session: DateTime<UTC>,
+    payload: Vec<u8>,
 }
 
 impl Default for Message {
@@ -94,6 +95,7 @@ impl Default for Message {
             momsn: Default::default(),
             mtmsn: Default::default(),
             time_of_session: UTC.ymd(1970, 1, 1).and_hms(0, 0, 0),
+            payload: Vec::new(),
         }
     }
 }
@@ -169,6 +171,12 @@ impl Message {
         message.time_of_session = UTC.ymd(1970, 1, 1).and_hms(0, 0, 0) +
             Duration::seconds(try!(cursor.read_u32::<BigEndian>()) as i64);
 
+        let payload = match information_elements.remove(&InformationElementType::MobileOriginatedPayload) {
+            Some(ie) => ie,
+            None => return Err(Error::MissingMobileOriginatedPayload),
+        };
+        message.payload = payload.into_contents();
+
         Ok(message)
     }
 
@@ -201,6 +209,8 @@ impl Message {
     pub fn mtmsn(&self) -> u16 { self.mtmsn }
     /// Returns this message's time of session.
     pub fn time_of_session(&self) -> DateTime<UTC> { self.time_of_session }
+    /// Returns a reference to this message's payload.
+    pub fn payload_ref(&self) -> &Vec<u8> { &self.payload }
 }
 
 #[cfg(test)]
@@ -209,6 +219,7 @@ mod tests {
 
     use std::fs::File;
     use std::io::{Cursor, Read};
+    use std::str;
 
     use chrono::{TimeZone, UTC};
 
@@ -257,6 +268,7 @@ mod tests {
         assert_eq!(75, message.momsn());
         assert_eq!(0, message.mtmsn());
         assert_eq!(UTC.ymd(2015, 7, 9).and_hms(18, 15, 8), message.time_of_session());
+        assert_eq!("test message from pete", str::from_utf8(message.payload_ref()).unwrap());
     }
 
     #[test]

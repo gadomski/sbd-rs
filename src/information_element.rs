@@ -99,6 +99,8 @@ impl InformationElement {
     pub fn id(&self) -> InformationElementType { self.id }
     /// Returns a reference to this information element's contents.
     pub fn contents_ref(&self) -> &[u8] { &self.contents[..] }
+    /// Converts this information element into its contents.
+    pub fn into_contents(self) -> Vec<u8> { self.contents }
 }
 
 #[cfg(test)]
