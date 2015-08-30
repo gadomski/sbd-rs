@@ -34,6 +34,8 @@ fn main() {
         .and_then(|d| d.decode())
         .unwrap_or_else(|e| e.exit());
     if args.cmd_list {
-        Storage::new(args.arg_directory);
+        for entry in &Storage::new(args.arg_directory) {
+            println!("{}", entry.path_buf.to_str().unwrap());
+        }
     }
 }
