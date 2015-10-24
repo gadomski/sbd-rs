@@ -25,7 +25,9 @@ pub struct Server<A: ToSocketAddrs + Sync> {
 }
 
 impl<A: ToSocketAddrs + Sync> Server<A> {
-    /// Creates a new server that will bind to the given address.
+    /// Creates a new server.
+    ///
+    /// This function does not bind to the address or do anything with the root directory.
     pub fn new<P: AsRef<Path>>(addr: A, root: P) -> Server<A> {
         Server {
             addr: addr,
