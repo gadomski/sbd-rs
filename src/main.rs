@@ -57,6 +57,7 @@ fn main() {
         }
     }
     if args.cmd_serve {
-        Server::serve_forever();
+        let server = Server::new("127.0.0.1:10800");
+        server.serve_forever();
     }
 }
