@@ -18,7 +18,7 @@ Iridium Short Burst Data (SBD) message utility.
 Usage:
     sbd list <directory>
     sbd read <file>
-    sbd serve
+    sbd serve <addr> <directory>
     sbd (-h | --help)
     sbd --version
 
@@ -32,6 +32,7 @@ struct Args {
     cmd_list: bool,
     cmd_read: bool,
     cmd_serve: bool,
+    arg_addr: String,
     arg_directory: String,
     arg_file: String,
 }
@@ -44,7 +45,7 @@ fn main() {
         .unwrap_or_else(|e| e.exit());
 
     if args.cmd_list {
-        for entry in &Storage::new(args.arg_directory) {
+        for entry in &Storage::new(&args.arg_directory) {
             println!("{}", entry.path_buf.to_str().unwrap());
         }
     }
@@ -57,7 +58,7 @@ fn main() {
         }
     }
     if args.cmd_serve {
-        let server = Server::new("127.0.0.1:10800", "/Users/gadomski/Desktop/messages");
+        let server = Server::new(&args.arg_addr[..], &args.arg_directory);
         server.serve_forever();
     }
 }
