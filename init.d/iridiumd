@@ -1,0 +1,79 @@
+#!/usr/bin/env sh
+#
+# /etc/init.d/iridiumd
+# Subsystem file for Iridium DirectIP server
+#
+# chkconfig: 2345 95 05
+# description: Iridium DirectIP server daemon
+#
+# processname: iridiumd
+# pidfile: /var/run/iridiumd.pid
+#
+# This script was modeled after the example at tldp.org: http://www.tldp.org/HOWTO/HighQuality-Apps-HOWTO/boot.html.
+# We keep all configuration values in this script to minimize file spread. Since this application
+# is a bit of a one-off, I figure that simple is better than "good", but maybe I'm wrong.
+# Regardless, this file doesn't depend on any others *other than* the `sbd` executable,
+# whose location you should configure with this script.
+#
+# A reference version of this file is contained in the `sbd-rs` repository:
+# https://github.com/gadomski/sbd-rs
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+prog="iridiumd"
+
+# The full path to the sbd executable.
+sbd="/usr/local/bin/sbd"
+
+# The socket address to listen on, e.g. 0.0.0.0:10800.
+addr="0.0.0.0:10800"
+
+# The directory in which to store received messages.
+directory="/var/iridium"
+
+start() {
+    echo -n $"Starting $prog:"
+    "$sbd" serve "$addr" "$directory"
+    RETVAL=$?
+    [ "$RETVAL" = 0 ] && touch /var/lock/subsys/$prog
+    echo
+}
+
+stop() {
+    echo -n $"Stopping $prog:"
+    killproc $prog -TERM
+    RETVAL=$?
+    [ "$RETVAL" = 0 ] && rm -f /var/lock/subsys/$prog
+    echo
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    condrestart)
+        if [ -f /var/lock/subsys/$prog ]; then
+            stop
+            # avoid race
+            sleep 3
+            start
+        fi
+        ;;
+    status)
+        status $prog
+        RETVAL=$?
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+        RETVAL=1
+esac
+exit $RETVAL
