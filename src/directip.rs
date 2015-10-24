@@ -82,12 +82,29 @@ impl<A: ToSocketAddrs + Sync> Server<A> {
 }
 
 /// Handles an incoming DirectIP stream.
+///
+/// # Panics
+///
+/// Panics if the tcp stream can't produce a peer address.
 fn handle_stream(stream: TcpStream, storage: Arc<Storage>) {
-    let ref message = Message::read_from(stream).unwrap();
-    storage.store(message).unwrap();
+    debug!("Handling TcpStream from {}", stream.peer_addr().unwrap());
+    let ref message = match Message::read_from(stream) {
+        Ok(message) => {
+            info!("Recieved message with {} byte payload", message.payload_ref().len());
+            message
+        },
+        Err(err) => {
+            error!("Error when reading message: {:?}", err);
+            return;
+        },
+    };
+    match storage.store(message) {
+        Ok(path) => info!("Stored message to {:?}", path),
+        Err(err) => error!("Problem storing message: {:?}", err),
+    };
 }
 
 /// Handles an error when handling a connection.
 fn handle_error(err: io::Error) {
-
+    error!("Error when receiving tcp communication: {:?}", err);
 }

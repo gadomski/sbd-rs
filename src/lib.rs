@@ -24,9 +24,9 @@ pub use message::Message;
 
 extern crate byteorder;
 extern crate chrono;
-#[macro_use]
-extern crate enum_primitive;
+#[macro_use] extern crate enum_primitive;
 extern crate glob;
+#[macro_use] extern crate log;
 extern crate num;
 extern crate tempdir;
 
