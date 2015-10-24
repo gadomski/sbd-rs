@@ -15,6 +15,10 @@
 # Regardless, this file doesn't depend on any others *other than* the `sbd` executable,
 # whose location you should configure with this script.
 #
+# This script is targeted at RHEL, since that's where I use it. For other operating systems,
+# you will probably have to change things, particularily the usage of the `daemonize` utility.
+# Oh, and to use this on RHEL, you need to install the `daemonize` utility.
+#
 # A reference version of this file is contained in the `sbd-rs` repository:
 # https://github.com/gadomski/sbd-rs
 
@@ -33,9 +37,18 @@ addr="0.0.0.0:10800"
 # The directory in which to store received messages.
 directory="/var/iridium"
 
+# The pidfile.
+pidfile="/var/run/iridiumd.pid"
+
+# The user under which the daemon will run.
+user=nobody
+
+# The group under which this daemon will run.
+group=iridium
+
 start() {
     echo -n $"Starting $prog:"
-    "$sbd" serve "$addr" "$directory"
+    daemonize -p "$pidfile" -l /var/lock/subsys/$prog "$sbd" serve "$addr" "$directory"
     RETVAL=$?
     [ "$RETVAL" = 0 ] && touch /var/lock/subsys/$prog
     echo
@@ -45,7 +58,7 @@ stop() {
     echo -n $"Stopping $prog:"
     killproc $prog -TERM
     RETVAL=$?
-    [ "$RETVAL" = 0 ] && rm -f /var/lock/subsys/$prog
+    [ "$RETVAL" = 0 ] && rm -f "$pidfile" && rm -f /var/lock/subsys/$prog
     echo
 }
 
