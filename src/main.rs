@@ -4,6 +4,7 @@ extern crate docopt;
 extern crate rustc_serialize;
 extern crate sbd;
 
+use std::process;
 use std::str;
 
 use docopt::Docopt;
@@ -58,7 +59,13 @@ fn main() {
         }
     }
     if args.cmd_serve {
-        let server = Server::new(&args.arg_addr[..], &args.arg_directory);
-        server.serve_forever();
+        let mut server = Server::new(&args.arg_addr[..], &args.arg_directory);
+        match server.bind() {
+            Ok(()) => server.serve_forever(),
+            Err(err) => {
+                println!("Error recieved when trying to bind to socket: {:?}", err);
+                process::exit(1);
+            }
+        }
     }
 }

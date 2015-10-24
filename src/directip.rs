@@ -20,6 +20,7 @@ use super::message::Message;
 /// A Iridium DirectIP server.
 pub struct Server<A: ToSocketAddrs + Sync> {
     addr: A,
+    listener: Option<TcpListener>,
     storage: Arc<Storage>,
 }
 
@@ -28,20 +29,34 @@ impl<A: ToSocketAddrs + Sync> Server<A> {
     pub fn new<P: AsRef<Path>>(addr: A, root: P) -> Server<A> {
         Server {
             addr: addr,
+            listener: None,
             storage: Arc::new(Storage::new(root)),
         }
+    }
+
+    /// Binds this server to its tcp socket.
+    ///
+    /// This is a seperate operation from `serve_forever` so that we can capture any errors
+    /// associated with the underlying `TcpListener::bind`.
+    pub fn bind(&mut self) -> io::Result<()> {
+        self.listener = Some(try!(self.create_listener()));
+        Ok(())
     }
 
     /// Starts the DirectIP server and serve forever.
     ///
     /// # Panics
     ///
-    /// This method panics, instead of returning errors, because it's never supposed to exit.
-    /// Some reasons why it might panic:
-    ///
-    /// - `TcpListener` can't bind to the server's socket address.
-    pub fn serve_forever(&self) {
-        let listener = TcpListener::bind(&self.addr).unwrap();
+    /// This method panics if it has a problem binding to the tcp socket address. To avoid a panic,
+    /// use `Server::bind` before calling `Server::serve_forever`.
+    pub fn serve_forever(&mut self) {
+        let listener = match self.listener {
+            Some(ref listener) => listener,
+            None => {
+                self.listener = Some(self.create_listener().unwrap());
+                self.listener.as_ref().unwrap()
+            },
+        };
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
@@ -57,6 +72,10 @@ impl<A: ToSocketAddrs + Sync> Server<A> {
                 }
             }
         }
+    }
+
+    fn create_listener(&self) -> io::Result<TcpListener> {
+        TcpListener::bind(&self.addr)
     }
 }
 
