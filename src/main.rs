@@ -63,7 +63,7 @@ fn main() {
         match server.bind() {
             Ok(()) => server.serve_forever(),
             Err(err) => {
-                println!("Error recieved when trying to bind to socket: {:?}", err);
+                println!("Error when trying to bind to socket: {:?}", err);
                 process::exit(1);
             }
         }
