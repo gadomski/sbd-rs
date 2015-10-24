@@ -17,6 +17,7 @@
 
 pub mod directip;
 mod information_element;
+pub mod logger;
 pub mod filesystem;
 pub mod message;
 

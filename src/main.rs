@@ -12,6 +12,7 @@ use docopt::Docopt;
 use sbd::directip::Server;
 use sbd::filesystem::Storage;
 use sbd::message::Message;
+use sbd::logger;
 
 const USAGE: &'static str = "
 Iridium Short Burst Data (SBD) message utility.
@@ -40,6 +41,7 @@ struct Args {
 
 #[cfg_attr(test, allow(dead_code))]
 fn main() {
+    logger::init("/Users/gadomski/Desktop/sbd.log");
     let args: Args = Docopt::new(USAGE)
         .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
         .and_then(|d| d.decode())
