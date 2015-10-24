@@ -57,7 +57,7 @@ fn main() {
         }
     }
     if args.cmd_serve {
-        let server = Server::new("127.0.0.1:10800");
+        let server = Server::new("127.0.0.1:10800", "/Users/gadomski/Desktop/messages");
         server.serve_forever();
     }
 }

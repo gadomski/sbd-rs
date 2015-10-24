@@ -10,17 +10,26 @@
 
 use std::io;
 use std::net::{TcpListener, TcpStream, ToSocketAddrs};
+use std::path::Path;
+use std::sync::Arc;
 use std::thread;
+
+use super::filesystem::Storage;
+use super::message::Message;
 
 /// A Iridium DirectIP server.
 pub struct Server<A: ToSocketAddrs + Sync> {
     addr: A,
+    storage: Arc<Storage>,
 }
 
 impl<A: ToSocketAddrs + Sync> Server<A> {
     /// Creates a new server that will bind to the given address.
-    pub fn new(addr: A) -> Server<A> {
-        Server { addr: addr }
+    pub fn new<P: AsRef<Path>>(addr: A, root: P) -> Server<A> {
+        Server { 
+            addr: addr,
+            storage: Arc::new(Storage::new(root)),
+        }
     }
 
     /// Starts the DirectIP server and serve forever.
@@ -36,8 +45,9 @@ impl<A: ToSocketAddrs + Sync> Server<A> {
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
+                    let storage = self.storage.clone();
                     thread::spawn(move || {
-                        handle_stream(stream)
+                        handle_stream(stream, storage)
                     });
                 }
                 Err(err) => {
@@ -51,8 +61,9 @@ impl<A: ToSocketAddrs + Sync> Server<A> {
 }
 
 /// Handles an incoming DirectIP stream.
-fn handle_stream(stream: TcpStream) {
-
+fn handle_stream(stream: TcpStream, storage: Arc<Storage>) {
+    let ref message = Message::read_from(stream).unwrap();
+    storage.store(message).unwrap();
 }
 
 /// Handles an error when handling a connection.
