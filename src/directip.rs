@@ -26,7 +26,7 @@ pub struct Server<A: ToSocketAddrs + Sync> {
 impl<A: ToSocketAddrs + Sync> Server<A> {
     /// Creates a new server that will bind to the given address.
     pub fn new<P: AsRef<Path>>(addr: A, root: P) -> Server<A> {
-        Server { 
+        Server {
             addr: addr,
             storage: Arc::new(Storage::new(root)),
         }
