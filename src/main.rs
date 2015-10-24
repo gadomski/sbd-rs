@@ -8,6 +8,7 @@ use std::str;
 
 use docopt::Docopt;
 
+use sbd::directip::Server;
 use sbd::filesystem::Storage;
 use sbd::message::Message;
 
@@ -17,6 +18,7 @@ Iridium Short Burst Data (SBD) message utility.
 Usage:
     sbd list <directory>
     sbd read <file>
+    sbd serve
     sbd (-h | --help)
     sbd --version
 
@@ -29,6 +31,7 @@ Options:
 struct Args {
     cmd_list: bool,
     cmd_read: bool,
+    cmd_serve: bool,
     arg_directory: String,
     arg_file: String,
 }
@@ -39,6 +42,7 @@ fn main() {
         .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
         .and_then(|d| d.decode())
         .unwrap_or_else(|e| e.exit());
+
     if args.cmd_list {
         for entry in &Storage::new(args.arg_directory) {
             println!("{}", entry.path_buf.to_str().unwrap());
@@ -51,5 +55,8 @@ fn main() {
             }
             Err(err) => println!("ERROR: {:?}", err),
         }
+    }
+    if args.cmd_serve {
+        Server::serve_forever();
     }
 }

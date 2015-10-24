@@ -15,6 +15,7 @@
 //! their headers and data payloads, and writing them back to a stream. This library does not
 //! handle mobile terminated messages.
 
+pub mod directip;
 mod information_element;
 pub mod filesystem;
 pub mod message;
