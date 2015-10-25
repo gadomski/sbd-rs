@@ -14,6 +14,11 @@
 //! This is a simple library for reading mobile originated SBD messages from a stream, decoding
 //! their headers and data payloads, and writing them back to a stream. This library does not
 //! handle mobile terminated messages.
+//!
+//! Most of the functionality of this library is exposed by a single executable, named `sbd` that
+//! is part of this package. Use the `sbd` executable to inspect raw sbd files stores on a
+//! filesystem, discover sbd files on a filesystem, and start a forever-running server to receive
+//! Iridium SBD DirectIP messages.
 
 pub mod directip;
 mod information_element;
