@@ -37,6 +37,9 @@ addr="0.0.0.0:10800"
 # The directory in which to store received messages.
 directory="/var/iridium"
 
+# The logfile
+logfile="/var/log/iridiumd.log"
+
 # The pidfile.
 pidfile="/var/run/iridiumd.pid"
 
@@ -48,7 +51,7 @@ group=iridium
 
 start() {
     echo -n $"Starting $prog:"
-    daemonize -p "$pidfile" -l /var/lock/subsys/$prog "$sbd" serve "$addr" "$directory"
+    daemonize -p "$pidfile" -l /var/lock/subsys/$prog "$sbd" serve "$addr" "$directory" --logfile="$logfile"
     RETVAL=$?
     [ "$RETVAL" = 0 ] && touch /var/lock/subsys/$prog
     echo
