@@ -107,7 +107,7 @@ impl Storage {
     pub fn store(&self, message: &Message) -> Result<PathBuf> {
         let mut path_buf = self.root.clone();
         path_buf.push(message.imei());
-        path_buf.push(message.time_of_session().format("%y").to_string());
+        path_buf.push(message.time_of_session().format("%Y").to_string());
         path_buf.push(message.time_of_session().format("%m").to_string());
         try!(fs::create_dir_all(&path_buf));
         path_buf.push(message.time_of_session().format(&format!("%y%m%d_%H%M%S{}", SBD_EXTENSION)).to_string());
