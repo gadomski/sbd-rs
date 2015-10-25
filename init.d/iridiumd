@@ -43,12 +43,6 @@ logfile="/var/log/iridiumd.log"
 # The pidfile.
 pidfile="/var/run/iridiumd.pid"
 
-# The user under which the daemon will run.
-user=nobody
-
-# The group under which this daemon will run.
-group=iridium
-
 start() {
     echo -n $"Starting $prog:"
     daemonize -p "$pidfile" -l /var/lock/subsys/$prog "$sbd" serve "$addr" "$directory" --logfile="$logfile"
