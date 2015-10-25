@@ -1,7 +1,7 @@
 //! An information element is a portion of a SBD message.
 //!
-//! Information elements come after the SBD header. They come in many types, including more
-//! header-type information and the actual data payload.
+//! Information elements come after the SBD header. They come in many types,
+//! including more header-type information and the actual data payload.
 
 use std::io::Read;
 
@@ -54,7 +54,7 @@ impl InformationElement {
         };
         information_element.length = try!(readable.read_u16::<BigEndian>());
         let bytes_read = try!(readable.take(information_element.length as u64)
-                              .read_to_end(&mut information_element.contents));
+                                      .read_to_end(&mut information_element.contents));
         assert!(!(bytes_read > information_element.length as usize));
         if bytes_read < information_element.length as usize {
             return Err(Error::Undersized(bytes_read + 3));
@@ -71,11 +71,17 @@ impl InformationElement {
     }
 
     /// Returns the id of the information element.
-    pub fn id(&self) -> InformationElementType { self.id }
+    pub fn id(&self) -> InformationElementType {
+        self.id
+    }
     /// Returns a reference to this information element's contents.
-    pub fn contents_ref(&self) -> &[u8] { &self.contents[..] }
+    pub fn contents_ref(&self) -> &[u8] {
+        &self.contents[..]
+    }
     /// Converts this information element into its contents.
-    pub fn into_contents(self) -> Vec<u8> { self.contents }
+    pub fn into_contents(self) -> Vec<u8> {
+        self.contents
+    }
 }
 
 #[cfg(test)]
