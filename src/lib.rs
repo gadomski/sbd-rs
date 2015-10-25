@@ -30,6 +30,7 @@ extern crate glob;
 #[macro_use] extern crate log;
 extern crate num;
 extern crate tempdir;
+extern crate time;
 
 use std::result;
 
