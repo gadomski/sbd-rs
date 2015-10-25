@@ -1,4 +1,9 @@
 //! A filesystem logger for use (primarily) with the DirectIP server.
+//!
+//! This logger is very dumb, as it was hacked together just to provide *some* sort of logging for
+//! the sever. In particular, it always it set to `Debug`, and has a bunch of panics in its `log`
+//! method. A more robust implementation would be better about this stuff, but as I don't need more
+//! functionality yet I'm going to keep it simple until I find out otherwise.
 
 use std::fs::OpenOptions;
 use std::io::Write;
