@@ -1,7 +1,8 @@
 //! Manage SBD messages stored on the fileystem.
 //!
-//! Messages are stored in a directory hierarchy under a single root directory. Message storage and
-//! retrieval are managed by a `Storage` object, which is configured for a single root directory.
+//! Messages are stored in a directory hierarchy under a single root directory.
+//! Message storage and retrieval are managed by a `Storage` object, which is
+//! configured for a single root directory.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -52,7 +53,7 @@ impl Iterator for StorageIterator {
                     path_buf: path_buf,
                 }),
                 Err(_) => continue,
-            };
+            }
         }
     }
 }
@@ -63,9 +64,7 @@ impl StorageIterator {
             Ok(paths) => Some(paths),
             Err(_) => None,
         };
-        StorageIterator {
-            paths: paths,
-        }
+        StorageIterator { paths: paths }
     }
 }
 
@@ -88,9 +87,7 @@ impl Storage {
     /// let storage = Storage::new("/var/iridium");
     /// ```
     pub fn new<P: AsRef<Path>>(root: P) -> Storage {
-        Storage {
-            root: root.as_ref().to_path_buf(),
-        }
+        Storage { root: root.as_ref().to_path_buf() }
     }
 
     /// Stores a message on the filesystem.
@@ -110,7 +107,9 @@ impl Storage {
         path_buf.push(message.time_of_session().format("%Y").to_string());
         path_buf.push(message.time_of_session().format("%m").to_string());
         try!(fs::create_dir_all(&path_buf));
-        path_buf.push(message.time_of_session().format(&format!("%y%m%d_%H%M%S{}", SBD_EXTENSION)).to_string());
+        path_buf.push(message.time_of_session()
+                             .format(&format!("%y%m%d_%H%M%S{}", SBD_EXTENSION))
+                             .to_string());
         let mut file = try!(fs::File::create(&path_buf));
         try!(message.write_to(&mut file));
         Ok(path_buf)
