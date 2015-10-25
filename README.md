@@ -1,12 +1,49 @@
 # sbd-rs
 
-Native rust library to read and write Iridium Short Burt Data (SBD) messages.
+Native rust library to read and write Iridium Short Burt Data (SBD) messages, and an executable that exposes some of the library's functionality.
 
 [![Build Status](https://travis-ci.org/gadomski/sbd-rs.svg?branch=master)](https://travis-ci.org/gadomski/sbd-rs)
 [![](http://meritbadge.herokuapp.com/sbd)](https://crates.io/crates/sbd)
 
 
-## Installation
+## Building the executable
+
+To build the `sbd` executable, you need [rust](https://www.rust-lang.org/downloads.html).
+Once you have rust, download the source from github:
+
+```bash
+$ git clone https://github.com/gadomski/sbd-rs.git
+```
+
+Build with `cargo`:
+
+```bash
+$ cd sbd-rs
+$ cargo build --release
+```
+
+As of this writing, the release version of `cargo` does not include an `install` comand.
+To use the executable, you have a couple options:
+
+```bash
+$ # Play it where it lies...
+$ target/release/sbd --help
+$
+$ # ...or link it to a directory on your path
+$ ln -s $PWD/target/release/sbd ~/local/bin/sbd
+$ sbd --help
+```
+
+Or whatever.
+
+### Using `sbd serve` as a daemon
+
+The executable includes a couple of powers, including a "run-forever" server for receiving Iridium SBD DirectIP messages and storing thosem messages to the filesystem.
+This `sbd serve` power *does not* include any sort of daemonization; you have to roll your own.
+I've provided an example `init.d` script in `init.d/iridiumd` to get things started.
+
+
+## Using the library
 
 Include the following in your `Cargo.toml`:
 
@@ -17,8 +54,7 @@ sbd = "0.0.3"
 
 ## Documentation
 
-The documentation is available [here](http://gadomski.github.com/sbd-rs).
-It includes examples, which should be used as a reference when developing an application with **sbd**.
+The documentation is available [online](http://gadomski.github.com/sbd-rs) or by building the docs with `cargo doc`.
 
 
 ## What is Iridium? What is SBD?
