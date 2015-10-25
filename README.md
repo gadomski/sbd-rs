@@ -72,7 +72,6 @@ Mobile Originated (MO) messages are sent from an Iridium modem to the Iridium "g
 Endpoints are configured through a web interface, and can come in one of two flavors: email endpoints, where the message is sent as a MIME email attachment, and DirectIP endpoints, where the messages are delivered over a TCP connection to an IP address and port.
 
 This library includes facilities to read SBD messages stored on the filesystem, and to parse SBD messages coming in on a `TcpStream`.
-At this time, no binary executables are included in this package — it is a library only.
 
 
 ## License
