@@ -23,6 +23,8 @@ use super::message::Message;
 /// The server will listen on a socket address for incoming Iridium SBD Mobile Originated
 /// messages. Incoming messages will be stored using `sbd::filesystem::Storage`. Errors are logged
 /// using the logging framework.
+#[allow(missing_copy_implementations)]
+#[derive(Debug)]
 pub struct Server<A: ToSocketAddrs + Sync> {
     addr: A,
     listener: Option<TcpListener>,
