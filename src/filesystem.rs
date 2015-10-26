@@ -15,6 +15,8 @@ use super::{Message, Result};
 const SBD_EXTENSION: &'static str = ".sbd";
 
 /// A structure for managing storing and retriving SBD messages on a filesystem.
+#[allow(missing_copy_implementations)]
+#[derive(Debug)]
 pub struct Storage {
     root: PathBuf,
 }
