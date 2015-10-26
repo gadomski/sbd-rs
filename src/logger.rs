@@ -9,8 +9,9 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
+use chrono::UTC;
+
 use log::{Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord, set_logger, SetLoggerError};
-use time;
 
 pub fn init<P: 'static + AsRef<Path> + Send + Sync>(path: P) -> Result<(), SetLoggerError> {
     set_logger(|max_log_level| {
@@ -42,7 +43,7 @@ impl<P: AsRef<Path> + Send + Sync> Log for Logger<P> {
                 .write(true)
                 .append(true)
                 .open(&self.path).unwrap();
-            file.write_all(format!("({}) {}: {}\n", time::now_utc().strftime("%Y-%m-%d %H:%M:%S").unwrap(),
+            file.write_all(format!("({}) {}: {}\n", UTC::now().format("%Y-%m-%d %H:%M:%S"),
                 record.level(), record.args()).as_bytes()).unwrap();
         }
     }
