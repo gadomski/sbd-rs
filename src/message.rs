@@ -12,7 +12,6 @@ use std::path::Path;
 
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use chrono::{DateTime, Duration, TimeZone, UTC};
-use num::traits::FromPrimitive;
 
 use super::{Error, Result};
 use super::information_element::{InformationElement, InformationElementType};
@@ -24,7 +23,7 @@ const ASCII_ZERO: u8 = 48;
 /// The protocol number of an SBD message.
 ///
 /// At this point, this can *only* be one.
-#[derive(Debug, Default, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 struct ProtocolRevisionNumber(u8);
 
 impl ProtocolRevisionNumber {
@@ -35,7 +34,7 @@ impl ProtocolRevisionNumber {
 }
 
 /// The modem IMEI identifier.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 struct Imei([u8; 15]);
 
 impl Default for Imei {
@@ -56,24 +55,53 @@ impl Imei {
 }
 
 /// The status of a mobile-originated session.
-enum_from_primitive! {
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+///
+/// The descriptions for these codes are taken directly from the DirectIP documentation.
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum SessionStatus {
+    /// The SBD session completed successfully.
     Ok = 0,
+    /// The MO message transfer, if any, was successful. The MT message queued at the GSS is too
+    /// large to be transferred within a single SBD session.
     OkMobileTerminatedTooLarge = 1,
+    /// The MO message transfer, if any, was successful. The reported location was determined to be
+    /// of unacceptable quality. This value is only applicable to IMEIs using SBD protocol revision
+    /// 1.
     OkLocationUnacceptableQuality = 2,
+    /// The SBD session timed out before session completion.
     Timeout = 10,
+    /// The MO message being transferred by the IMEI is too large to be transerred within a single
+    /// SBD session.
     MobileOriginatedTooLarge = 12,
+    /// An RF link loss ocurred during the SBD session.
     RFLinkLoss = 13,
+    /// An IMEI protocol anomaly occurred during SBD session.
     IMEIProtocolAnomaly = 14,
+    /// The IMEI is prohibited from accessing the GSS.
     Prohibited = 15,
+    /// Unknown session status code.
     Unknown,
-}
 }
 
 impl Default for SessionStatus {
     fn default() -> SessionStatus {
         SessionStatus::Unknown
+    }
+}
+
+impl From<u8> for SessionStatus {
+    fn from(n: u8) -> Self {
+        match n {
+            0 => SessionStatus::Ok,
+            1 => SessionStatus::OkMobileTerminatedTooLarge,
+            2 => SessionStatus::OkLocationUnacceptableQuality,
+            10 => SessionStatus::Timeout,
+            12 => SessionStatus::MobileOriginatedTooLarge,
+            13 => SessionStatus::RFLinkLoss,
+            14 => SessionStatus::IMEIProtocolAnomaly,
+            15 => SessionStatus::Prohibited,
+            _ => SessionStatus::Unknown,
+        }
     }
 }
 
@@ -179,10 +207,7 @@ impl Message {
         if bytes_read != message.imei.0.len() {
             return Err(Error::InvalidImei);
         }
-        message.session_status = match SessionStatus::from_u8(try!(cursor.read_u8())) {
-            Some(status) => status,
-            None => SessionStatus::Unknown,
-        };
+        message.session_status = SessionStatus::from(try!(cursor.read_u8()));
         message.momsn = try!(cursor.read_u16::<BigEndian>());
         message.mtmsn = try!(cursor.read_u16::<BigEndian>());
         message.time_of_session = UTC.ymd(1970, 1, 1).and_hms(0, 0, 0) +

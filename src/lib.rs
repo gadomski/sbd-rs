@@ -34,7 +34,6 @@ extern crate chrono;
 extern crate glob;
 #[macro_use] extern crate log;
 extern crate num;
-extern crate tempdir;
 
 use std::result;
 

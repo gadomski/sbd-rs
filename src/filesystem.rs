@@ -28,8 +28,12 @@ pub struct StorageIterator {
 }
 
 /// The object yielded by a `StorageIterator`.
+#[allow(missing_copy_implementations)]
+#[derive(Debug)]
 pub struct StorageEntry {
+    /// The Iridium Message contained in the file.
     pub message: Message,
+    /// The path of message on the filesystem.
     pub path_buf: PathBuf,
 }
 
