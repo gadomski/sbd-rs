@@ -132,9 +132,11 @@ impl Storage {
 
 #[cfg(test)]
 mod tests {
+    extern crate tempdir;
+
     use super::*;
 
-    use tempdir::TempDir;
+    use self::tempdir::TempDir;
 
     use super::super::Message;
 
