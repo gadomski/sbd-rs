@@ -20,6 +20,10 @@
 //! filesystem, discover sbd files on a filesystem, and start a forever-running server to receive
 //! Iridium SBD DirectIP messages.
 
+#![deny(missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
+        trivial_numeric_casts, unsafe_code, unstable_features, unused_extern_crates,
+        unused_import_braces, unused_qualifications)]
+
 pub mod directip;
 mod information_element;
 pub mod logger;
