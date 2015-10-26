@@ -170,6 +170,7 @@ impl Message {
     /// use sbd::message::Message;
     /// let mut file = File::open("data/0-mo.sbd").unwrap();
     /// let message = Message::read_from(file).unwrap();
+    /// ```
     pub fn read_from<R: Read>(mut readable: R) -> Result<Message> {
         let mut message: Message = Default::default();
 
