@@ -88,4 +88,5 @@ impl From<std::io::Error> for Error {
     }
 }
 
+/// Create-specific `Result`.
 pub type Result<T> = result::Result<T, Error>;
