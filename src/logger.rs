@@ -13,6 +13,9 @@ use chrono::UTC;
 
 use log::{Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord, set_logger, SetLoggerError};
 
+/// Initialize a new logger.
+///
+/// This logger will write all messages with level Debug or less to the file specified by `path`.
 pub fn init<P: 'static + AsRef<Path> + Send + Sync>(path: P) -> Result<(), SetLoggerError> {
     set_logger(|max_log_level| {
         max_log_level.set(LogLevelFilter::Debug);

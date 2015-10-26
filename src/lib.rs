@@ -20,6 +20,10 @@
 //! filesystem, discover sbd files on a filesystem, and start a forever-running server to receive
 //! Iridium SBD DirectIP messages.
 
+#![deny(missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
+        trivial_numeric_casts, unsafe_code, unstable_features, unused_extern_crates,
+        unused_import_braces, unused_qualifications)]
+
 pub mod directip;
 mod information_element;
 pub mod logger;
@@ -34,21 +38,33 @@ extern crate chrono;
 extern crate glob;
 #[macro_use] extern crate log;
 extern crate num;
-extern crate tempdir;
 
 use std::result;
 
+/// Crate-specific errors
 #[derive(Debug)]
 pub enum Error {
+    /// An error while reading bytes from a stream with the byteorder crate.
     ByteorderError(byteorder::Error),
+    /// A wrapper around a std::io::Error.
     IoError(std::io::Error),
+    /// Invalid IMEI number.
     InvalidImei,
+    /// Invalid protocol revision number.
     InvalidProtocolRevisionNumber(u8),
+    /// Wrapper around a glob error.
     GlobError(glob::GlobError),
+    /// Missing mobile originated header.
     MissingMobileOriginatedHeader,
+    /// Missing mobile originated payload.
     MissingMobileOriginatedPayload,
-    Oversized, // Oversized doesn't demand a size since we don't want to find out how much there really is
+    /// An oversized message.
+    ///
+    /// Oversized doesn't demand a size since we don't want to find out how much there really is.
+    Oversized,
+    /// Wrapper around a glob::PatternError.
     PatternError(glob::PatternError),
+    /// An undersized message.
     Undersized(usize),
 }
 
@@ -76,4 +92,5 @@ impl From<std::io::Error> for Error {
     }
 }
 
+/// Create-specific `Result`.
 pub type Result<T> = result::Result<T, Error>;

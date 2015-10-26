@@ -15,18 +15,25 @@ use super::{Message, Result};
 const SBD_EXTENSION: &'static str = ".sbd";
 
 /// A structure for managing storing and retriving SBD messages on a filesystem.
+#[allow(missing_copy_implementations)]
+#[derive(Debug)]
 pub struct Storage {
     root: PathBuf,
 }
 
 /// An interator over the messages in a `Storage`.
+#[allow(missing_copy_implementations, missing_debug_implementations)]
 pub struct StorageIterator {
     paths: Option<Paths>,
 }
 
 /// The object yielded by a `StorageIterator`.
+#[allow(missing_copy_implementations)]
+#[derive(Debug)]
 pub struct StorageEntry {
+    /// The Iridium Message contained in the file.
     pub message: Message,
+    /// The path of message on the filesystem.
     pub path_buf: PathBuf,
 }
 
@@ -125,9 +132,11 @@ impl Storage {
 
 #[cfg(test)]
 mod tests {
+    extern crate tempdir;
+
     use super::*;
 
-    use tempdir::TempDir;
+    use self::tempdir::TempDir;
 
     use super::super::Message;
 
