@@ -22,6 +22,7 @@ pub struct Storage {
 }
 
 /// An interator over the messages in a `Storage`.
+#[allow(missing_copy_implementations, missing_debug_implementations)]
 pub struct StorageIterator {
     paths: Option<Paths>,
 }
