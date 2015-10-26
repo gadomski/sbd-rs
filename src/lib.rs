@@ -37,17 +37,30 @@ extern crate num;
 
 use std::result;
 
+/// Crate-specific errors
 #[derive(Debug)]
 pub enum Error {
+    /// An error while reading bytes from a stream with the byteorder crate.
     ByteorderError(byteorder::Error),
+    /// A wrapper around a std::io::Error.
     IoError(std::io::Error),
+    /// Invalid IMEI number.
     InvalidImei,
+    /// Invalid protocol revision number.
     InvalidProtocolRevisionNumber(u8),
+    /// Wrapper around a glob error.
     GlobError(glob::GlobError),
+    /// Missing mobile originated header.
     MissingMobileOriginatedHeader,
+    /// Missing mobile originated payload.
     MissingMobileOriginatedPayload,
-    Oversized, // Oversized doesn't demand a size since we don't want to find out how much there really is
+    /// An oversized message.
+    ///
+    /// Oversized doesn't demand a size since we don't want to find out how much there really is.
+    Oversized,
+    /// Wrapper around a glob::PatternError.
     PatternError(glob::PatternError),
+    /// An undersized message.
     Undersized(usize),
 }
 
