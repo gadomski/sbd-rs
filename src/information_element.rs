@@ -6,14 +6,12 @@
 use std::io::Read;
 
 use byteorder::{ReadBytesExt, BigEndian};
-use num::traits::FromPrimitive;
 
 use super::{Error, Result};
 
 const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
 
 /// Enum to name the information element ids.
-enum_from_primitive! {
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum InformationElementType {
     MobileOriginatedHeader = 0x01,
@@ -24,6 +22,19 @@ pub enum InformationElementType {
     MobileTerminatedConfirmationMessage = 0x44,
     Unknown,
 }
+
+impl From<u8> for InformationElementType {
+    fn from(n: u8) -> Self {
+        match n {
+            0x01 => InformationElementType::MobileOriginatedHeader,
+            0x02 => InformationElementType::MobileOriginatedPayload,
+            0x03 => InformationElementType::MobileOriginatedLocationInformation,
+            0x41 => InformationElementType::MobileTerminatedHeader,
+            0x42 => InformationElementType::MobileTerminatedPayload,
+            0x44 => InformationElementType::MobileTerminatedConfirmationMessage,
+            _ => InformationElementType::Unknown,
+        }
+    }
 }
 
 impl Default for InformationElementType {
@@ -48,10 +59,7 @@ impl InformationElement {
     /// Reads an information element from something that implements `Read`.
     pub fn read_from<R: Read>(mut readable: R) -> Result<InformationElement> {
         let mut information_element: InformationElement = Default::default();
-        information_element.id = match InformationElementType::from_u8(try!(readable.read_u8())) {
-            Some(ietype) => ietype,
-            None => InformationElementType::Unknown,
-        };
+        information_element.id = InformationElementType::from(try!(readable.read_u8()));
         information_element.length = try!(readable.read_u16::<BigEndian>());
         let bytes_read = try!(readable.take(information_element.length as u64)
                                       .read_to_end(&mut information_element.contents));
