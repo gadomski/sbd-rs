@@ -37,21 +37,24 @@ extern crate chrono;
 extern crate glob;
 #[macro_use] extern crate log;
 
+use std::error::Error;
+use std::fmt;
 use std::result;
 
 /// Crate-specific errors
 #[derive(Debug)]
-pub enum Error {
+pub enum SbdError {
     /// An error while reading bytes from a stream with the byteorder crate.
-    ByteorderError(byteorder::Error),
+    Byteorder(byteorder::Error),
     /// A wrapper around a std::io::Error.
-    IoError(std::io::Error),
+    Io(std::io::Error),
     /// Invalid IMEI number.
+    // TODO Include the IMEI number as an argument.
     InvalidImei,
     /// Invalid protocol revision number.
     InvalidProtocolRevisionNumber(u8),
     /// Wrapper around a glob error.
-    GlobError(glob::GlobError),
+    Glob(glob::GlobError),
     /// Missing mobile originated header.
     MissingMobileOriginatedHeader,
     /// Missing mobile originated payload.
@@ -61,34 +64,77 @@ pub enum Error {
     /// Oversized doesn't demand a size since we don't want to find out how much there really is.
     Oversized,
     /// Wrapper around a glob::PatternError.
-    PatternError(glob::PatternError),
+    Pattern(glob::PatternError),
     /// An undersized message.
     Undersized(usize),
 }
 
-impl From<byteorder::Error> for Error {
-    fn from(err: byteorder::Error) -> Error {
-        Error::ByteorderError(err)
+impl fmt::Display for SbdError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            SbdError::Byteorder(ref err) => write!(f, "Byteorder error: {}", err),
+            SbdError::Io(ref err) => write!(f, "IO error: {}", err),
+            SbdError::InvalidImei => write!(f, "Invalid IMEI number"),
+            SbdError::InvalidProtocolRevisionNumber(number) => write!(f, "Invalid protocl revision number: {}", number),
+            SbdError::Glob(ref err) => write!(f, "Glob error: {}", err),
+            SbdError::MissingMobileOriginatedHeader => write!(f, "Missing mobile origianted header"),
+            SbdError::MissingMobileOriginatedPayload => write!(f, "Missing mobile orignated payload"),
+            SbdError::Oversized => write!(f, "Oversized message"),
+            SbdError::Pattern(ref err) => write!(f, "Glob pattern error: {}", err),
+            SbdError::Undersized(size) => write!(f, "Undersized message: {}", size),
+        }
     }
 }
 
-impl From<glob::PatternError> for Error {
-    fn from(err: glob::PatternError) -> Error {
-        Error::PatternError(err)
+impl Error for SbdError {
+    fn description(&self) -> &str {
+        match *self {
+            SbdError::Byteorder(ref err) => err.description(),
+            SbdError::Io(ref err) => err.description(),
+            SbdError::InvalidImei => "invalid IMEI number",
+            SbdError::InvalidProtocolRevisionNumber(_) => "invalid protocol revision number",
+            SbdError::Glob(_) => "glob error",
+            SbdError::MissingMobileOriginatedHeader => "missing mobile originated header",
+            SbdError::MissingMobileOriginatedPayload => "missing mobile originated payload",
+            SbdError::Oversized => "oversized message",
+            SbdError::Pattern(_) => "glob pattern error",
+            SbdError::Undersized(_) => "undersized message",
+        }
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        match *self {
+            SbdError::Byteorder(ref err) => Some(err),
+            SbdError::Io(ref err) => Some(err),
+            // TODO Once glob supports the `Error` trait, include it as a cause.
+            _ => None,
+        }
     }
 }
 
-impl From<glob::GlobError> for Error {
-    fn from(err: glob::GlobError) -> Error {
-        Error::GlobError(err)
+impl From<byteorder::Error> for SbdError {
+    fn from(err: byteorder::Error) -> SbdError {
+        SbdError::Byteorder(err)
     }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Error {
-        Error::IoError(err)
+impl From<glob::PatternError> for SbdError {
+    fn from(err: glob::PatternError) -> SbdError {
+        SbdError::Pattern(err)
+    }
+}
+
+impl From<glob::GlobError> for SbdError {
+    fn from(err: glob::GlobError) -> SbdError {
+        SbdError::Glob(err)
+    }
+}
+
+impl From<std::io::Error> for SbdError {
+    fn from(err: std::io::Error) -> SbdError {
+        SbdError::Io(err)
     }
 }
 
 /// Create-specific `Result`.
-pub type Result<T> = result::Result<T, Error>;
+pub type Result<T> = result::Result<T, SbdError>;
