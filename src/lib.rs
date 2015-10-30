@@ -41,7 +41,7 @@ use std::result;
 
 /// Crate-specific errors
 #[derive(Debug)]
-pub enum Error {
+pub enum SbdError {
     /// An error while reading bytes from a stream with the byteorder crate.
     ByteorderError(byteorder::Error),
     /// A wrapper around a std::io::Error.
@@ -66,29 +66,29 @@ pub enum Error {
     Undersized(usize),
 }
 
-impl From<byteorder::Error> for Error {
-    fn from(err: byteorder::Error) -> Error {
-        Error::ByteorderError(err)
+impl From<byteorder::Error> for SbdError {
+    fn from(err: byteorder::Error) -> SbdError {
+        SbdError::ByteorderError(err)
     }
 }
 
-impl From<glob::PatternError> for Error {
-    fn from(err: glob::PatternError) -> Error {
-        Error::PatternError(err)
+impl From<glob::PatternError> for SbdError {
+    fn from(err: glob::PatternError) -> SbdError {
+        SbdError::PatternError(err)
     }
 }
 
-impl From<glob::GlobError> for Error {
-    fn from(err: glob::GlobError) -> Error {
-        Error::GlobError(err)
+impl From<glob::GlobError> for SbdError {
+    fn from(err: glob::GlobError) -> SbdError {
+        SbdError::GlobError(err)
     }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Error {
-        Error::IoError(err)
+impl From<std::io::Error> for SbdError {
+    fn from(err: std::io::Error) -> SbdError {
+        SbdError::IoError(err)
     }
 }
 
 /// Create-specific `Result`.
-pub type Result<T> = result::Result<T, Error>;
+pub type Result<T> = result::Result<T, SbdError>;

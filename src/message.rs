@@ -13,7 +13,7 @@ use std::path::Path;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use chrono::{DateTime, Duration, TimeZone, UTC};
 
-use super::{Error, Result};
+use super::{SbdError, Result};
 use super::information_element::{InformationElement, InformationElementType};
 
 const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
@@ -176,7 +176,7 @@ impl Message {
 
         message.protocol_revision_number = ProtocolRevisionNumber(try!(readable.read_u8()));
         if !message.protocol_revision_number.valid() {
-            return Err(Error::InvalidProtocolRevisionNumber(message.protocol_revision_number.0));
+            return Err(SbdError::InvalidProtocolRevisionNumber(message.protocol_revision_number.0));
         }
         let overall_message_length = try!(readable.read_u16::<BigEndian>());
 
@@ -195,18 +195,18 @@ impl Message {
         }
 
         if try!(readable.take(1).read_to_end(&mut Vec::new())) != 0 {
-            return Err(Error::Oversized);
+            return Err(SbdError::Oversized);
         }
 
         let header = match information_elements.remove(&InformationElementType::MobileOriginatedHeader) {
             Some(ie) => ie,
-            None => return Err(Error::MissingMobileOriginatedHeader),
+            None => return Err(SbdError::MissingMobileOriginatedHeader),
         };
         let mut cursor = &mut Cursor::new(header.contents_ref());
         message.cdr_reference = try!(cursor.read_u32::<BigEndian>());
         let bytes_read = try!(cursor.take(message.imei.0.len() as u64).read(&mut message.imei.0));
         if bytes_read != message.imei.0.len() {
-            return Err(Error::InvalidImei);
+            return Err(SbdError::InvalidImei);
         }
         message.session_status = SessionStatus::from(try!(cursor.read_u8()));
         message.momsn = try!(cursor.read_u16::<BigEndian>());
@@ -216,7 +216,7 @@ impl Message {
 
         let payload = match information_elements.remove(&InformationElementType::MobileOriginatedPayload) {
             Some(ie) => ie,
-            None => return Err(Error::MissingMobileOriginatedPayload),
+            None => return Err(SbdError::MissingMobileOriginatedPayload),
         };
         message.payload = payload.into_contents();
 

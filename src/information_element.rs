@@ -7,7 +7,7 @@ use std::io::Read;
 
 use byteorder::{ReadBytesExt, BigEndian};
 
-use super::{Error, Result};
+use super::{SbdError, Result};
 
 const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
 
@@ -65,7 +65,7 @@ impl InformationElement {
                                       .read_to_end(&mut information_element.contents));
         assert!(!(bytes_read > information_element.length as usize));
         if bytes_read < information_element.length as usize {
-            return Err(Error::Undersized(bytes_read + 3));
+            return Err(SbdError::Undersized(bytes_read + 3));
         }
         Ok(information_element)
     }
