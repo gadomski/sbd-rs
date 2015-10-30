@@ -43,15 +43,15 @@ use std::result;
 #[derive(Debug)]
 pub enum SbdError {
     /// An error while reading bytes from a stream with the byteorder crate.
-    ByteorderError(byteorder::Error),
+    Byteorder(byteorder::Error),
     /// A wrapper around a std::io::Error.
-    IoError(std::io::Error),
+    Io(std::io::Error),
     /// Invalid IMEI number.
     InvalidImei,
     /// Invalid protocol revision number.
     InvalidProtocolRevisionNumber(u8),
     /// Wrapper around a glob error.
-    GlobError(glob::GlobError),
+    Glob(glob::GlobError),
     /// Missing mobile originated header.
     MissingMobileOriginatedHeader,
     /// Missing mobile originated payload.
@@ -61,32 +61,32 @@ pub enum SbdError {
     /// Oversized doesn't demand a size since we don't want to find out how much there really is.
     Oversized,
     /// Wrapper around a glob::PatternError.
-    PatternError(glob::PatternError),
+    Pattern(glob::PatternError),
     /// An undersized message.
     Undersized(usize),
 }
 
 impl From<byteorder::Error> for SbdError {
     fn from(err: byteorder::Error) -> SbdError {
-        SbdError::ByteorderError(err)
+        SbdError::Byteorder(err)
     }
 }
 
 impl From<glob::PatternError> for SbdError {
     fn from(err: glob::PatternError) -> SbdError {
-        SbdError::PatternError(err)
+        SbdError::Pattern(err)
     }
 }
 
 impl From<glob::GlobError> for SbdError {
     fn from(err: glob::GlobError) -> SbdError {
-        SbdError::GlobError(err)
+        SbdError::Glob(err)
     }
 }
 
 impl From<std::io::Error> for SbdError {
     fn from(err: std::io::Error) -> SbdError {
-        SbdError::IoError(err)
+        SbdError::Io(err)
     }
 }
 
