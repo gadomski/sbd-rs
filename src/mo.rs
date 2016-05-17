@@ -1,4 +1,4 @@
-//! Module for reading and writing SBD messages.
+//! Module for reading and writing Mobile-Originated (MO) SBD messages.
 //!
 //! Though messages technically come in two flavors, mobile originated and mobile terminated, we
 //! only handle mobile originated messages in this library.
@@ -151,7 +151,7 @@ impl Message {
     /// # Examples
     ///
     /// ```
-    /// use sbd::message::Message;
+    /// use sbd::mo::Message;
     /// let message = Message::from_path("data/0-mo.sbd").unwrap();
     /// ```
     pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Message> {
@@ -167,7 +167,7 @@ impl Message {
     ///
     /// ```
     /// use std::fs::File;
-    /// use sbd::message::Message;
+    /// use sbd::mo::Message;
     /// let mut file = File::open("data/0-mo.sbd").unwrap();
     /// let message = Message::read_from(file).unwrap();
     /// ```
@@ -232,7 +232,7 @@ impl Message {
     ///
     /// ```
     /// use std::io::Cursor;
-    /// use sbd::message::Message;
+    /// use sbd::mo::Message;
     /// let message = Message::from_path("data/0-mo.sbd").unwrap();
     /// let mut cursor = Cursor::new(Vec::new());
     /// message.write_to(&mut cursor);

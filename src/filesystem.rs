@@ -10,7 +10,8 @@ use std::result;
 
 use glob::{glob, Paths, PatternError};
 
-use {Message, Result};
+use Result;
+use mo::Message;
 
 const SBD_EXTENSION: &'static str = ".sbd";
 
@@ -105,7 +106,7 @@ impl Storage {
     ///
     /// ```no_run
     /// use sbd::filesystem::Storage;
-    /// use sbd::Message;
+    /// use sbd::mo::Message;
     /// let message: Message = Default::default();
     /// let storage = Storage::new("/var/iridium");
     /// storage.store(&message);
@@ -140,7 +141,7 @@ mod tests {
 
     use self::tempdir::TempDir;
 
-    use Message;
+    use mo::Message;
 
     #[test]
     fn new_storage() {

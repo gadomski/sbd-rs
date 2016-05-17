@@ -11,7 +11,7 @@ use docopt::Docopt;
 
 use sbd::directip::Server;
 use sbd::filesystem::Storage;
-use sbd::message::Message;
+use sbd::mo::Message;
 use sbd::logger;
 
 const USAGE: &'static str = "
