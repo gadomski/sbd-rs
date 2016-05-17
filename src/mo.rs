@@ -57,7 +57,7 @@ impl Imei {
 /// The status of a mobile-originated session.
 ///
 /// The descriptions for these codes are taken directly from the DirectIP documentation.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, RustcEncodable)]
 pub enum SessionStatus {
     /// The SBD session completed successfully.
     Ok = 0,

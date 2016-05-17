@@ -55,6 +55,7 @@ extern crate byteorder;
 extern crate chrono;
 #[macro_use]
 extern crate log;
+extern crate rustc_serialize;
 
 /// Create-specific `Result`.
 pub type Result<T> = std::result::Result<T, Error>;
