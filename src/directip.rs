@@ -125,7 +125,9 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
     }
     let ref message = match Message::read_from(stream) {
         Ok(message) => {
-            info!("Recieved message with {} byte payload",
+            info!("Recieved message from IMEI {} with MOMN {} and {} byte payload",
+                  message.imei(),
+                  message.momsn(),
                   message.payload_ref().len());
             message
         }
@@ -135,7 +137,7 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
         }
     };
     match storage.lock().expect("unable to lock storage mutex").store(message) {
-        Ok(path) => info!("Stored message to {:?}", path),
+        Ok(_) => info!("Stored message"),
         Err(err) => error!("Problem storing message: {:?}", err),
     }
 }
