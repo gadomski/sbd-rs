@@ -1,9 +1,13 @@
 //! Command line utility for querying and working with Iridium SBD messages.
 
+extern crate chrono;
 extern crate docopt;
+extern crate log;
 extern crate rustc_serialize;
 extern crate sbd;
 
+use std::io::Write;
+use std::path::Path;
 use std::process;
 use std::str;
 
@@ -12,7 +16,6 @@ use docopt::Docopt;
 use sbd::directip::Server;
 use sbd::filesystem::Storage;
 use sbd::mo::Message;
-use sbd::logger;
 
 const USAGE: &'static str = "
 Iridium Short Burst Data (SBD) message utility.
@@ -46,6 +49,40 @@ struct Args {
     flag_logfile: String,
 }
 
+struct Logger<P: AsRef<Path>> {
+    path: P,
+}
+
+impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
+    fn enabled(&self, metadata: &log::LogMetadata) -> bool {
+        metadata.level() <= log::LogLevel::Debug
+    }
+
+    /// Log a message.
+    ///
+    /// This function has some panics in it. I'm not sure of the "right" way to handle exceptional
+    /// situaions in this logging module. Part of me wants to ignore everything, since logging
+    /// should not interfere with the functioning of the program as a whole. However, since I'm in
+    /// dev mode for the whole system, silent logs might be worse than a crashing program. For now,
+    /// I'll keep the panics, but with the idea that I need to fix this in the future.
+    fn log(&self, record: &log::LogRecord) {
+        if self.enabled(record.metadata()) {
+            let mut file = std::fs::OpenOptions::new()
+                               .create(true)
+                               .write(true)
+                               .append(true)
+                               .open(&self.path)
+                               .unwrap();
+            file.write_all(format!("({}) {}: {}\n",
+                                   chrono::UTC::now().format("%Y-%m-%d %H:%M:%S"),
+                                   record.level(),
+                                   record.args())
+                               .as_bytes())
+                .unwrap();
+        }
+    }
+}
+
 #[cfg_attr(test, allow(dead_code))]
 fn main() {
     let args: Args = Docopt::new(USAGE)
@@ -59,7 +96,7 @@ fn main() {
         }
     }
     if args.cmd_read {
-        match Message::from_path(args.arg_file) {
+        match Message::from_path(&args.arg_file) {
             Ok(message) => {
                 println!("{}", str::from_utf8(message.payload_ref()).unwrap());
             }
@@ -67,7 +104,10 @@ fn main() {
         }
     }
     if args.cmd_serve {
-        match logger::init(args.flag_logfile) {
+        match log::set_logger(|max_log_level| {
+            max_log_level.set(log::LogLevelFilter::Debug);
+            Box::new(Logger { path: args.flag_logfile.clone() })
+        }) {
             Ok(()) => {}
             Err(err) => {
                 println!("Error when creating logger: {:?}", err);
