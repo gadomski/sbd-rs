@@ -3,7 +3,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use {Result, SbdError};
+use {Result, Error};
 use mo::Message;
 
 const SBD_EXTENSION: &'static str = ".sbd";
@@ -39,7 +39,7 @@ impl FilesystemStorage {
     pub fn open<P: AsRef<Path>>(root: P) -> Result<FilesystemStorage> {
         let metadata = try!(fs::metadata(root.as_ref()));
         if !metadata.is_dir() {
-            Err(SbdError::NotADirectory(root.as_ref().as_os_str().to_os_string()))
+            Err(Error::NotADirectory(root.as_ref().as_os_str().to_os_string()))
         } else {
             Ok(FilesystemStorage { root: root.as_ref().to_path_buf() })
         }
