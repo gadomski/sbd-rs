@@ -223,6 +223,10 @@ impl Message {
             };
         message.payload = payload.into_contents();
 
+        if !information_elements.is_empty() {
+            return Err(Error::UnhandledInformationElements(information_elements));
+        }
+
         Ok(message)
     }
 
