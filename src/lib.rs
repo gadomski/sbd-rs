@@ -36,7 +36,7 @@
 //! ```
 //!
 //! Most of the functionality of this library is exposed by a single executable, named `sbd`.  Use
-//! the `sbd` executable to inspect raw sbd files stores on a filesystem, discover sbd files on a
+//! the `sbd` executable to inspect raw sbd files stores on a filesystem, interrogate sbd files on a
 //! filesystem, and start that forever-running server to receive Iridium SBD DirectIP messages.
 
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
