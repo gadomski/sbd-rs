@@ -10,7 +10,7 @@ use std::result;
 
 use glob::{glob, Paths, PatternError};
 
-use super::{Message, Result};
+use {Message, Result};
 
 const SBD_EXTENSION: &'static str = ".sbd";
 
@@ -140,7 +140,7 @@ mod tests {
 
     use self::tempdir::TempDir;
 
-    use super::super::Message;
+    use Message;
 
     #[test]
     fn new_storage() {

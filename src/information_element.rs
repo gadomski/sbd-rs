@@ -7,7 +7,7 @@ use std::io::Read;
 
 use byteorder::{ReadBytesExt, BigEndian};
 
-use super::{SbdError, Result};
+use {SbdError, Result};
 
 const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
 

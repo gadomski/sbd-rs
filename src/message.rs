@@ -13,8 +13,8 @@ use std::path::Path;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use chrono::{DateTime, Duration, TimeZone, UTC};
 
-use super::{SbdError, Result};
-use super::information_element::{InformationElement, InformationElementType};
+use {SbdError, Result};
+use information_element::{InformationElement, InformationElementType};
 
 const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
 const MOBILE_ORIGINATED_HEADER_LENGTH: u16 = 28;

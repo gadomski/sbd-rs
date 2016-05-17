@@ -15,8 +15,8 @@ use std::path::Path;
 use std::sync::Arc;
 use std::thread;
 
-use super::filesystem::Storage;
-use super::message::Message;
+use filesystem::Storage;
+use message::Message;
 
 /// A Iridium DirectIP server.
 ///
