@@ -16,7 +16,7 @@ use std::sync::Arc;
 use std::thread;
 
 use filesystem::Storage;
-use message::Message;
+use mo::Message;
 
 /// A Iridium DirectIP server.
 ///
