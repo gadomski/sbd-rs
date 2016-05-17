@@ -22,23 +22,24 @@ Iridium Short Burst Data (SBD) message utility.
 
 Usage:
     sbd \
-                             read <file>
-    sbd serve <addr> <directory> [--logfile=<logfile>]
-    \
-                             sbd (-h | --help)
+                             payload <file>
+    sbd serve <addr> <directory> \
+                             [--logfile=<logfile>]
+    sbd (-h | --help)
     sbd --version
 
-Options:
-    -h --help               \
-                             Show this information
-    --version               Show version
+\
+                             Options:
+    -h --help               Show this information
     \
-                             --logfile=<logfile>     Logfile [default: /var/log/iridiumd.log]
+                             --version               Show version
+    --logfile=<logfile>     \
+                             Logfile [default: /var/log/iridiumd.log]
 ";
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
-    cmd_read: bool,
+    cmd_payload: bool,
     cmd_serve: bool,
     arg_addr: String,
     arg_directory: String,
@@ -79,34 +80,35 @@ fn main() {
                          .and_then(|d| d.decode())
                          .unwrap_or_else(|e| e.exit());
 
-    if args.cmd_read {
+    if args.cmd_payload {
         match Message::from_path(&args.arg_file) {
             Ok(message) => {
                 println!("{}", str::from_utf8(message.payload_ref()).unwrap());
             }
-            Err(err) => println!("ERROR: {:?}", err),
+            Err(err) => {
+                println!("ERROR: Unable to extract payload: {}", err);
+                process::exit(1);
+            }
         }
     }
     if args.cmd_serve {
-        match log::set_logger(|max_log_level| {
+        log::set_logger(|max_log_level| {
             max_log_level.set(log::LogLevelFilter::Debug);
             Box::new(Logger { path: args.flag_logfile.clone() })
-        }) {
-            Ok(()) => {}
-            Err(err) => {
-                println!("Error when creating logger: {:?}", err);
+        })
+            .unwrap_or_else(|e| {
+                println!("ERROR: Could not create logger: {}", e);
                 process::exit(1);
-            }
-        };
+            });
         let storage = FilesystemStorage::open(&args.arg_directory).unwrap_or_else(|e| {
-            println!("Error when opening fileystem storage: {}", e);
+            println!("ERROR: Could not open storage: {}", e);
             process::exit(1);
         });
         let mut server = Server::new(&args.arg_addr[..], storage);
         match server.bind() {
             Ok(()) => server.serve_forever(),
             Err(err) => {
-                println!("Error when trying to bind to socket: {:?}", err);
+                println!("ERROR: Could not bind to socket: {}", err);
                 process::exit(1);
             }
         }
