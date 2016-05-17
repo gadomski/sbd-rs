@@ -106,7 +106,7 @@ impl From<u8> for SessionStatus {
 }
 
 /// A mobile-origined Iridium SBD message.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Message {
     protocol_revision_number: ProtocolRevisionNumber,
     cdr_reference: u32,
