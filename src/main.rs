@@ -55,13 +55,6 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
         metadata.level() <= log::LogLevel::Debug
     }
 
-    /// Log a message.
-    ///
-    /// This function has some panics in it. I'm not sure of the "right" way to handle exceptional
-    /// situaions in this logging module. Part of me wants to ignore everything, since logging
-    /// should not interfere with the functioning of the program as a whole. However, since I'm in
-    /// dev mode for the whole system, silent logs might be worse than a crashing program. For now,
-    /// I'll keep the panics, but with the idea that I need to fix this in the future.
     fn log(&self, record: &log::LogRecord) {
         if self.enabled(record.metadata()) {
             let mut file = std::fs::OpenOptions::new()
@@ -80,7 +73,6 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
     }
 }
 
-#[cfg_attr(test, allow(dead_code))]
 fn main() {
     let args: Args = Docopt::new(USAGE)
                          .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
