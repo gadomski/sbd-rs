@@ -55,10 +55,12 @@ impl Iterator for StorageIterator {
                 Err(_) => continue,
             };
             match Message::from_path(&path_buf) {
-                Ok(message) => return Some(StorageEntry {
-                    message: message,
-                    path_buf: path_buf,
-                }),
+                Ok(message) => {
+                    return Some(StorageEntry {
+                        message: message,
+                        path_buf: path_buf,
+                    })
+                }
                 Err(_) => continue,
             }
         }

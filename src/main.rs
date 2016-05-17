@@ -18,16 +18,21 @@ const USAGE: &'static str = "
 Iridium Short Burst Data (SBD) message utility.
 
 Usage:
-    sbd list <directory>
+    sbd \
+                             list <directory>
     sbd read <file>
-    sbd serve <addr> <directory> [--logfile=<logfile>]
+    sbd serve <addr> \
+                             <directory> [--logfile=<logfile>]
     sbd (-h | --help)
-    sbd --version
+    sbd \
+                             --version
 
 Options:
-    -h --help               Show this information
+    -h --help               Show this \
+                             information
     --version               Show version
-    --logfile=<logfile>     Logfile [default: /var/log/iridiumd.log]
+    \
+                             --logfile=<logfile>     Logfile [default: /var/log/iridiumd.log]
 ";
 
 #[derive(Debug, RustcDecodable)]
@@ -44,9 +49,9 @@ struct Args {
 #[cfg_attr(test, allow(dead_code))]
 fn main() {
     let args: Args = Docopt::new(USAGE)
-        .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
-        .and_then(|d| d.decode())
-        .unwrap_or_else(|e| e.exit());
+                         .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
+                         .and_then(|d| d.decode())
+                         .unwrap_or_else(|e| e.exit());
 
     if args.cmd_list {
         for entry in &Storage::new(&args.arg_directory) {
@@ -63,11 +68,11 @@ fn main() {
     }
     if args.cmd_serve {
         match logger::init(args.flag_logfile) {
-            Ok(()) => {},
+            Ok(()) => {}
             Err(err) => {
                 println!("Error when creating logger: {:?}", err);
                 process::exit(1);
-            },
+            }
         };
         let mut server = Server::new(&args.arg_addr[..], &args.arg_directory);
         match server.bind() {

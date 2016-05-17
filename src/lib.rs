@@ -35,7 +35,8 @@ pub use message::Message;
 extern crate byteorder;
 extern crate chrono;
 extern crate glob;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 
 use std::error::Error;
 use std::fmt;
@@ -49,7 +50,6 @@ pub enum SbdError {
     /// A wrapper around a std::io::Error.
     Io(std::io::Error),
     /// Invalid IMEI number.
-    // TODO Include the IMEI number as an argument.
     InvalidImei,
     /// Invalid protocol revision number.
     InvalidProtocolRevisionNumber(u8),
@@ -75,10 +75,16 @@ impl fmt::Display for SbdError {
             SbdError::Byteorder(ref err) => write!(f, "Byteorder error: {}", err),
             SbdError::Io(ref err) => write!(f, "IO error: {}", err),
             SbdError::InvalidImei => write!(f, "Invalid IMEI number"),
-            SbdError::InvalidProtocolRevisionNumber(number) => write!(f, "Invalid protocl revision number: {}", number),
+            SbdError::InvalidProtocolRevisionNumber(number) => {
+                write!(f, "Invalid protocl revision number: {}", number)
+            }
             SbdError::Glob(ref err) => write!(f, "Glob error: {}", err),
-            SbdError::MissingMobileOriginatedHeader => write!(f, "Missing mobile origianted header"),
-            SbdError::MissingMobileOriginatedPayload => write!(f, "Missing mobile orignated payload"),
+            SbdError::MissingMobileOriginatedHeader => {
+                write!(f, "Missing mobile origianted header")
+            }
+            SbdError::MissingMobileOriginatedPayload => {
+                write!(f, "Missing mobile orignated payload")
+            }
             SbdError::Oversized => write!(f, "Oversized message"),
             SbdError::Pattern(ref err) => write!(f, "Glob pattern error: {}", err),
             SbdError::Undersized(size) => write!(f, "Undersized message: {}", size),

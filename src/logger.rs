@@ -42,12 +42,17 @@ impl<P: AsRef<Path> + Send + Sync> Log for Logger<P> {
     fn log(&self, record: &LogRecord) {
         if self.enabled(record.metadata()) {
             let mut file = OpenOptions::new()
-                .create(true)
-                .write(true)
-                .append(true)
-                .open(&self.path).unwrap();
-            file.write_all(format!("({}) {}: {}\n", UTC::now().format("%Y-%m-%d %H:%M:%S"),
-                record.level(), record.args()).as_bytes()).unwrap();
+                               .create(true)
+                               .write(true)
+                               .append(true)
+                               .open(&self.path)
+                               .unwrap();
+            file.write_all(format!("({}) {}: {}\n",
+                                   UTC::now().format("%Y-%m-%d %H:%M:%S"),
+                                   record.level(),
+                                   record.args())
+                               .as_bytes())
+                .unwrap();
         }
     }
 }

@@ -180,7 +180,8 @@ impl Message {
         }
         let overall_message_length = try!(readable.read_u16::<BigEndian>());
 
-        let mut information_elements: HashMap<InformationElementType, InformationElement> = HashMap::new();
+        let mut information_elements: HashMap<InformationElementType, InformationElement> =
+            HashMap::new();
         let mut bytes_read = 0u16;
         loop {
             let ie = match InformationElement::read_from(&mut readable) {
@@ -190,7 +191,7 @@ impl Message {
             bytes_read += ie.len();
             information_elements.insert(ie.id(), ie);
             if bytes_read >= overall_message_length {
-                break
+                break;
             }
         }
 
@@ -198,10 +199,11 @@ impl Message {
             return Err(SbdError::Oversized);
         }
 
-        let header = match information_elements.remove(&InformationElementType::MobileOriginatedHeader) {
-            Some(ie) => ie,
-            None => return Err(SbdError::MissingMobileOriginatedHeader),
-        };
+        let header =
+            match information_elements.remove(&InformationElementType::MobileOriginatedHeader) {
+                Some(ie) => ie,
+                None => return Err(SbdError::MissingMobileOriginatedHeader),
+            };
         let mut cursor = &mut Cursor::new(header.contents_ref());
         message.cdr_reference = try!(cursor.read_u32::<BigEndian>());
         let bytes_read = try!(cursor.take(message.imei.0.len() as u64).read(&mut message.imei.0));
@@ -212,12 +214,13 @@ impl Message {
         message.momsn = try!(cursor.read_u16::<BigEndian>());
         message.mtmsn = try!(cursor.read_u16::<BigEndian>());
         message.time_of_session = UTC.ymd(1970, 1, 1).and_hms(0, 0, 0) +
-            Duration::seconds(try!(cursor.read_u32::<BigEndian>()) as i64);
+                                  Duration::seconds(try!(cursor.read_u32::<BigEndian>()) as i64);
 
-        let payload = match information_elements.remove(&InformationElementType::MobileOriginatedPayload) {
-            Some(ie) => ie,
-            None => return Err(SbdError::MissingMobileOriginatedPayload),
-        };
+        let payload =
+            match information_elements.remove(&InformationElementType::MobileOriginatedPayload) {
+                Some(ie) => ie,
+                None => return Err(SbdError::MissingMobileOriginatedPayload),
+            };
         message.payload = payload.into_contents();
 
         Ok(message)
@@ -253,21 +256,37 @@ impl Message {
     }
 
     /// Returns this message's protocol revision number.
-    pub fn protocol_revision_number(&self) -> u8 { self.protocol_revision_number.0 }
+    pub fn protocol_revision_number(&self) -> u8 {
+        self.protocol_revision_number.0
+    }
     /// Returns this message's IMEI number as a string.
-    pub fn imei(&self) -> &str { self.imei.as_str() }
+    pub fn imei(&self) -> &str {
+        self.imei.as_str()
+    }
     /// Returns this message's cdr reference number (also called auto id).
-    pub fn cdr_reference(&self) -> u32 { self.cdr_reference }
+    pub fn cdr_reference(&self) -> u32 {
+        self.cdr_reference
+    }
     /// Returns this message's session status.
-    pub fn session_status(&self) -> SessionStatus { self.session_status }
+    pub fn session_status(&self) -> SessionStatus {
+        self.session_status
+    }
     /// Returns this message's mobile originated message number.
-    pub fn momsn(&self) -> u16 { self.momsn }
+    pub fn momsn(&self) -> u16 {
+        self.momsn
+    }
     /// Returns this message's mobile terminated message number.
-    pub fn mtmsn(&self) -> u16 { self.mtmsn }
+    pub fn mtmsn(&self) -> u16 {
+        self.mtmsn
+    }
     /// Returns this message's time of session.
-    pub fn time_of_session(&self) -> DateTime<UTC> { self.time_of_session }
+    pub fn time_of_session(&self) -> DateTime<UTC> {
+        self.time_of_session
+    }
     /// Returns a reference to this message's payload.
-    pub fn payload_ref(&self) -> &Vec<u8> { &self.payload }
+    pub fn payload_ref(&self) -> &Vec<u8> {
+        &self.payload
+    }
 
     /// Returns the overall message length, as is contained in the message's header.
     ///
@@ -275,7 +294,7 @@ impl Message {
     /// header itself.
     fn overall_message_length(&self) -> u16 {
         INFORMATION_ELEMENT_HEADER_LENGTH + MOBILE_ORIGINATED_HEADER_LENGTH +
-            INFORMATION_ELEMENT_HEADER_LENGTH + self.payload.len() as u16
+        INFORMATION_ELEMENT_HEADER_LENGTH + self.payload.len() as u16
     }
 }
 
@@ -333,8 +352,10 @@ mod tests {
         assert_eq!(SessionStatus::Ok, message.session_status());
         assert_eq!(75, message.momsn());
         assert_eq!(0, message.mtmsn());
-        assert_eq!(UTC.ymd(2015, 7, 9).and_hms(18, 15, 8), message.time_of_session());
-        assert_eq!("test message from pete", str::from_utf8(message.payload_ref()).unwrap());
+        assert_eq!(UTC.ymd(2015, 7, 9).and_hms(18, 15, 8),
+                   message.time_of_session());
+        assert_eq!("test message from pete",
+                   str::from_utf8(message.payload_ref()).unwrap());
     }
 
     #[test]
