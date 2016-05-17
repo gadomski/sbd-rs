@@ -83,7 +83,7 @@ impl<A: ToSocketAddrs + Sync> Server<A> {
     /// server.bind().unwrap();
     /// server.serve_forever();
     /// ```
-    pub fn serve_forever(&mut self) {
+    pub fn serve_forever(mut self) {
         let listener = match self.listener {
             Some(ref listener) => listener,
             None => {
