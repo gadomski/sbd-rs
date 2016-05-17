@@ -11,11 +11,10 @@
 
 use std::io;
 use std::net::{TcpListener, TcpStream, ToSocketAddrs};
-use std::path::Path;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
 
-use filesystem::Storage;
+use storage::Storage;
 use mo::Message;
 
 /// A Iridium DirectIP server.
@@ -23,33 +22,35 @@ use mo::Message;
 /// The server will listen on a socket address for incoming Iridium SBD Mobile Originated
 /// messages. Incoming messages will be stored using `sbd::filesystem::Storage`. Errors are logged
 /// using the logging framework.
-#[allow(missing_copy_implementations)]
 #[derive(Debug)]
-pub struct Server<A: ToSocketAddrs + Sync> {
+pub struct Server<A: ToSocketAddrs + Sync, S: Storage + Sync + Send> {
     addr: A,
     listener: Option<TcpListener>,
-    storage: Arc<Storage>,
+    storage: Arc<Mutex<S>>,
 }
 
-impl<A: ToSocketAddrs + Sync> Server<A> {
-    /// Creates a new server that will listen on `addr` and write messages to `root`.
+impl<A, S> Server<A, S>
+    where A: ToSocketAddrs + Sync,
+          S: 'static + Storage + Sync + Send
+{
+    /// Creates a new server that will listen on `addr` and write messages to `storage`.
     ///
-    /// This method does not actually bind to the socket address or do anything with the root
-    /// directory. Use `bind` and `serve_forever` to actually do stuff.
+    /// This method does not actually bind to the socket address or do anything with the storage.
+    /// Use `bind` and `serve_forever` to actually do stuff.
     ///
-    /// The `root` parameters is used to create a new `sbd::filesystem::Storage`, and the server
-    /// will store all incoming messages under `root`.
+    /// The provided storage is expected to be ready to accept new messages.
     ///
     /// # Examples
     ///
     /// ```
-    /// let server = sbd::directip::Server::new("0.0.0.0:10800", "/var/iridium");
+    /// let storage = sbd::storage::MemoryStorage::new();
+    /// let server = sbd::directip::Server::new("0.0.0.0:10800", storage);
     /// ```
-    pub fn new<P: AsRef<Path>>(addr: A, root: P) -> Server<A> {
+    pub fn new(addr: A, storage: S) -> Server<A, S> {
         Server {
             addr: addr,
             listener: None,
-            storage: Arc::new(Storage::new(root)),
+            storage: Arc::new(Mutex::new(storage)),
         }
     }
 
@@ -61,7 +62,8 @@ impl<A: ToSocketAddrs + Sync> Server<A> {
     /// # Examples
     ///
     /// ```
-    /// let mut server = sbd::directip::Server::new("0.0.0.0:10800", "/var/iridium");
+    /// let storage = sbd::storage::MemoryStorage::new();
+    /// let mut server = sbd::directip::Server::new("0.0.0.0:10800", storage);
     /// server.bind().unwrap();
     /// ```
     pub fn bind(&mut self) -> io::Result<()> {
@@ -79,11 +81,12 @@ impl<A: ToSocketAddrs + Sync> Server<A> {
     /// # Examples
     ///
     /// ```no_run
-    /// let mut server = sbd::directip::Server::new("0.0.0.0:10800", "/var/iridium");
+    /// let storage = sbd::storage::MemoryStorage::new();
+    /// let mut server = sbd::directip::Server::new("0.0.0.0:10800", storage);
     /// server.bind().unwrap();
     /// server.serve_forever();
     /// ```
-    pub fn serve_forever(&mut self) {
+    pub fn serve_forever(mut self) {
         let listener = match self.listener {
             Some(ref listener) => listener,
             None => {
@@ -110,7 +113,7 @@ impl<A: ToSocketAddrs + Sync> Server<A> {
 }
 
 /// Handles an incoming DirectIP stream.
-fn handle_stream(stream: TcpStream, storage: Arc<Storage>) {
+fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
     match stream.peer_addr() {
         Ok(addr) => {
             debug!("Handling TcpStream from {}", addr);
@@ -131,7 +134,7 @@ fn handle_stream(stream: TcpStream, storage: Arc<Storage>) {
             return;
         }
     };
-    match storage.store(message) {
+    match storage.lock().expect("unable to lock storage mutex").store(message) {
         Ok(path) => info!("Stored message to {:?}", path),
         Err(err) => error!("Problem storing message: {:?}", err),
     }

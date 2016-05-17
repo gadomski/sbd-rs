@@ -14,7 +14,7 @@ use std::str;
 use docopt::Docopt;
 
 use sbd::directip::Server;
-use sbd::filesystem::Storage;
+use sbd::storage::FilesystemStorage;
 use sbd::mo::Message;
 
 const USAGE: &'static str = "
@@ -22,17 +22,15 @@ Iridium Short Burst Data (SBD) message utility.
 
 Usage:
     sbd \
-                             list <directory>
-    sbd read <file>
-    sbd serve <addr> \
-                             <directory> [--logfile=<logfile>]
-    sbd (-h | --help)
-    sbd \
-                             --version
+                             read <file>
+    sbd serve <addr> <directory> [--logfile=<logfile>]
+    \
+                             sbd (-h | --help)
+    sbd --version
 
 Options:
-    -h --help               Show this \
-                             information
+    -h --help               \
+                             Show this information
     --version               Show version
     \
                              --logfile=<logfile>     Logfile [default: /var/log/iridiumd.log]
@@ -40,7 +38,6 @@ Options:
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
-    cmd_list: bool,
     cmd_read: bool,
     cmd_serve: bool,
     arg_addr: String,
@@ -90,11 +87,6 @@ fn main() {
                          .and_then(|d| d.decode())
                          .unwrap_or_else(|e| e.exit());
 
-    if args.cmd_list {
-        for entry in &Storage::new(&args.arg_directory) {
-            println!("{}", entry.path_buf.to_str().unwrap());
-        }
-    }
     if args.cmd_read {
         match Message::from_path(&args.arg_file) {
             Ok(message) => {
@@ -114,7 +106,11 @@ fn main() {
                 process::exit(1);
             }
         };
-        let mut server = Server::new(&args.arg_addr[..], &args.arg_directory);
+        let storage = FilesystemStorage::open(&args.arg_directory).unwrap_or_else(|e| {
+            println!("Error when opening fileystem storage: {}", e);
+            process::exit(1);
+        });
+        let mut server = Server::new(&args.arg_addr[..], storage);
         match server.bind() {
             Ok(()) => server.serve_forever(),
             Err(err) => {

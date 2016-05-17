@@ -26,10 +26,18 @@
 //! let message = sbd::mo::Message::read_from(file).unwrap();
 //! ```
 //!
-//! Most of the functionality of this library is exposed by a single executable, named `sbd` that
-//! is part of this package. Use the `sbd` executable to inspect raw sbd files stores on a
-//! filesystem, discover sbd files on a filesystem, and start a forever-running server to receive
-//! Iridium SBD DirectIP messages.
+//! To receive MO messages via DirectIP, a server is provided.
+//! This server will listen for incoming messages forever, storing them in a `Storage`:
+//!
+//! ```no_run
+//! let storage = sbd::storage::FilesystemStorage::open("/var/iridium").unwrap();
+//! let mut server = sbd::directip::Server::new("0.0.0.0:10800", storage);
+//! server.serve_forever();
+//! ```
+//!
+//! Most of the functionality of this library is exposed by a single executable, named `sbd`.  Use
+//! the `sbd` executable to inspect raw sbd files stores on a filesystem, discover sbd files on a
+//! filesystem, and start that forever-running server to receive Iridium SBD DirectIP messages.
 
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
         trivial_numeric_casts, unsafe_code, unstable_features, unused_extern_crates,
@@ -37,16 +45,16 @@
 
 pub mod directip;
 mod information_element;
-pub mod filesystem;
 pub mod mo;
+pub mod storage;
 
 extern crate byteorder;
 extern crate chrono;
-extern crate glob;
 #[macro_use]
 extern crate log;
 
 use std::error::Error;
+use std::ffi::OsString;
 use std::fmt;
 use std::result;
 
@@ -61,18 +69,16 @@ pub enum SbdError {
     InvalidImei,
     /// Invalid protocol revision number.
     InvalidProtocolRevisionNumber(u8),
-    /// Wrapper around a glob error.
-    Glob(glob::GlobError),
     /// Missing mobile originated header.
     MissingMobileOriginatedHeader,
     /// Missing mobile originated payload.
     MissingMobileOriginatedPayload,
+    /// We expected a directory, but this isn't one.
+    NotADirectory(OsString),
     /// An oversized message.
     ///
     /// Oversized doesn't demand a size since we don't want to find out how much there really is.
     Oversized,
-    /// Wrapper around a glob::PatternError.
-    Pattern(glob::PatternError),
     /// An undersized message.
     Undersized(usize),
 }
@@ -86,15 +92,18 @@ impl fmt::Display for SbdError {
             SbdError::InvalidProtocolRevisionNumber(number) => {
                 write!(f, "Invalid protocl revision number: {}", number)
             }
-            SbdError::Glob(ref err) => write!(f, "Glob error: {}", err),
             SbdError::MissingMobileOriginatedHeader => {
                 write!(f, "Missing mobile origianted header")
             }
             SbdError::MissingMobileOriginatedPayload => {
                 write!(f, "Missing mobile orignated payload")
             }
+            SbdError::NotADirectory(ref path) => {
+                write!(f,
+                       "Not a directory: {}",
+                       path.clone().into_string().unwrap_or("<undisplayable path>".to_string()))
+            }
             SbdError::Oversized => write!(f, "Oversized message"),
-            SbdError::Pattern(ref err) => write!(f, "Glob pattern error: {}", err),
             SbdError::Undersized(size) => write!(f, "Undersized message: {}", size),
         }
     }
@@ -107,11 +116,10 @@ impl Error for SbdError {
             SbdError::Io(ref err) => err.description(),
             SbdError::InvalidImei => "invalid IMEI number",
             SbdError::InvalidProtocolRevisionNumber(_) => "invalid protocol revision number",
-            SbdError::Glob(_) => "glob error",
             SbdError::MissingMobileOriginatedHeader => "missing mobile originated header",
             SbdError::MissingMobileOriginatedPayload => "missing mobile originated payload",
+            SbdError::NotADirectory(_) => "directory expected but it wasn't",
             SbdError::Oversized => "oversized message",
-            SbdError::Pattern(_) => "glob pattern error",
             SbdError::Undersized(_) => "undersized message",
         }
     }
@@ -129,18 +137,6 @@ impl Error for SbdError {
 impl From<byteorder::Error> for SbdError {
     fn from(err: byteorder::Error) -> SbdError {
         SbdError::Byteorder(err)
-    }
-}
-
-impl From<glob::PatternError> for SbdError {
-    fn from(err: glob::PatternError) -> SbdError {
-        SbdError::Pattern(err)
-    }
-}
-
-impl From<glob::GlobError> for SbdError {
-    fn from(err: glob::GlobError) -> SbdError {
-        SbdError::Glob(err)
     }
 }
 
