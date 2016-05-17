@@ -12,38 +12,45 @@ use std::process;
 use std::str;
 
 use docopt::Docopt;
+use rustc_serialize::json;
 
 use sbd::directip::Server;
 use sbd::storage::FilesystemStorage;
-use sbd::mo::Message;
+use sbd::mo::{Message, SessionStatus};
 
 const USAGE: &'static str = "
 Iridium Short Burst Data (SBD) message utility.
 
 Usage:
     sbd \
-                             read <file>
-    sbd serve <addr> <directory> [--logfile=<logfile>]
-    \
-                             sbd (-h | --help)
-    sbd --version
+                             info <file> [--compact]
+    sbd payload <file>
+    sbd serve <addr> \
+                             <directory> [--logfile=<logfile>]
+    sbd (-h | --help)
+    sbd \
+                             --version
 
 Options:
-    -h --help               \
-                             Show this information
+    -h --help               Show this \
+                             information
     --version               Show version
     \
                              --logfile=<logfile>     Logfile [default: /var/log/iridiumd.log]
+    \
+                             --compact               Don't pretty-print the JSON
 ";
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
-    cmd_read: bool,
+    cmd_info: bool,
+    cmd_payload: bool,
     cmd_serve: bool,
     arg_addr: String,
     arg_directory: String,
     arg_file: String,
     flag_logfile: String,
+    flag_compact: bool,
 }
 
 struct Logger<P: AsRef<Path>> {
@@ -55,13 +62,6 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
         metadata.level() <= log::LogLevel::Debug
     }
 
-    /// Log a message.
-    ///
-    /// This function has some panics in it. I'm not sure of the "right" way to handle exceptional
-    /// situaions in this logging module. Part of me wants to ignore everything, since logging
-    /// should not interfere with the functioning of the program as a whole. However, since I'm in
-    /// dev mode for the whole system, silent logs might be worse than a crashing program. For now,
-    /// I'll keep the panics, but with the idea that I need to fix this in the future.
     fn log(&self, record: &log::LogRecord) {
         if self.enabled(record.metadata()) {
             let mut file = std::fs::OpenOptions::new()
@@ -80,41 +80,88 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
     }
 }
 
-#[cfg_attr(test, allow(dead_code))]
+#[derive(RustcEncodable)]
+pub struct ReadableMessage {
+    protocol_revision_number: u8,
+    cdr_reference: u32,
+    imei: String,
+    session_status: SessionStatus,
+    momsn: u16,
+    mtmsn: u16,
+    time_of_session: String,
+    payload: String,
+}
+
+impl ReadableMessage {
+    fn new(m: &Message) -> ReadableMessage {
+        ReadableMessage {
+            protocol_revision_number: m.protocol_revision_number(),
+            cdr_reference: m.cdr_reference(),
+            imei: m.imei().to_string(),
+            session_status: m.session_status(),
+            momsn: m.momsn(),
+            mtmsn: m.mtmsn(),
+            time_of_session: m.time_of_session().to_rfc2822(),
+            payload: str::from_utf8(m.payload_ref()).unwrap_or("<binary payload>").to_string(),
+        }
+    }
+}
+
 fn main() {
     let args: Args = Docopt::new(USAGE)
                          .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
                          .and_then(|d| d.decode())
                          .unwrap_or_else(|e| e.exit());
 
-    if args.cmd_read {
+    if args.cmd_info {
+        match Message::from_path(&args.arg_file) {
+            Ok(ref message) => {
+                let ref message = ReadableMessage::new(message);
+                if args.flag_compact {
+                    println!("{}", json::as_json(message));
+                } else {
+                    println!("{}", json::as_pretty_json(message));
+                };
+            }
+            Err(err) => {
+                println!("ERROR: Unable to read message: {}", err);
+                process::exit(1);
+            }
+        }
+    }
+    if args.cmd_payload {
         match Message::from_path(&args.arg_file) {
             Ok(message) => {
-                println!("{}", str::from_utf8(message.payload_ref()).unwrap());
+                println!("{}",
+                         str::from_utf8(message.payload_ref()).unwrap_or_else(|e| {
+                             println!("ERROR: Unable to convert payload to utf8: {}", e);
+                             process::exit(1);
+                         }));
             }
-            Err(err) => println!("ERROR: {:?}", err),
+            Err(err) => {
+                println!("ERROR: Unable to extract payload: {}", err);
+                process::exit(1);
+            }
         }
     }
     if args.cmd_serve {
-        match log::set_logger(|max_log_level| {
+        log::set_logger(|max_log_level| {
             max_log_level.set(log::LogLevelFilter::Debug);
             Box::new(Logger { path: args.flag_logfile.clone() })
-        }) {
-            Ok(()) => {}
-            Err(err) => {
-                println!("Error when creating logger: {:?}", err);
+        })
+            .unwrap_or_else(|e| {
+                println!("ERROR: Could not create logger: {}", e);
                 process::exit(1);
-            }
-        };
+            });
         let storage = FilesystemStorage::open(&args.arg_directory).unwrap_or_else(|e| {
-            println!("Error when opening fileystem storage: {}", e);
+            println!("ERROR: Could not open storage: {}", e);
             process::exit(1);
         });
         let mut server = Server::new(&args.arg_addr[..], storage);
         match server.bind() {
             Ok(()) => server.serve_forever(),
             Err(err) => {
-                println!("Error when trying to bind to socket: {:?}", err);
+                println!("ERROR: Could not bind to socket: {}", err);
                 process::exit(1);
             }
         }

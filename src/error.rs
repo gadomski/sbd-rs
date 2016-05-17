@@ -1,10 +1,13 @@
 //! Error module.
 
 use std;
+use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fmt;
 
 use byteorder;
+
+use information_element::{InformationElementType, InformationElement};
 
 /// Crate-specific errors
 #[derive(Debug)]
@@ -29,6 +32,10 @@ pub enum Error {
     Oversized,
     /// An undersized message.
     Undersized(usize),
+    /// Some information elements weren't handled during reading.
+    ///
+    /// This is bad, because we might not write those IEs back out.
+    UnhandledInformationElements(HashMap<InformationElementType, InformationElement>),
 }
 
 impl fmt::Display for Error {
@@ -38,7 +45,7 @@ impl fmt::Display for Error {
             Error::Io(ref err) => write!(f, "IO error: {}", err),
             Error::InvalidImei => write!(f, "Invalid IMEI number"),
             Error::InvalidProtocolRevisionNumber(number) => {
-                write!(f, "Invalid protocl revision number: {}", number)
+                write!(f, "Invalid protocol revision number: {}", number)
             }
             Error::MissingMobileOriginatedHeader => write!(f, "Missing mobile origianted header"),
             Error::MissingMobileOriginatedPayload => write!(f, "Missing mobile orignated payload"),
@@ -49,6 +56,9 @@ impl fmt::Display for Error {
             }
             Error::Oversized => write!(f, "Oversized message"),
             Error::Undersized(size) => write!(f, "Undersized message: {}", size),
+            Error::UnhandledInformationElements(ref ies) => {
+                write!(f, "Unhandled information elements: {:?}", ies)
+            }
         }
     }
 }
@@ -65,6 +75,7 @@ impl std::error::Error for Error {
             Error::NotADirectory(_) => "directory expected but it wasn't",
             Error::Oversized => "oversized message",
             Error::Undersized(_) => "undersized message",
+            Error::UnhandledInformationElements(_) => "unhandled information elements",
         }
     }
 
