@@ -38,7 +38,7 @@ impl fmt::Display for Error {
             Error::Io(ref err) => write!(f, "IO error: {}", err),
             Error::InvalidImei => write!(f, "Invalid IMEI number"),
             Error::InvalidProtocolRevisionNumber(number) => {
-                write!(f, "Invalid protocl revision number: {}", number)
+                write!(f, "Invalid protocol revision number: {}", number)
             }
             Error::MissingMobileOriginatedHeader => write!(f, "Missing mobile origianted header"),
             Error::MissingMobileOriginatedPayload => write!(f, "Missing mobile orignated payload"),
