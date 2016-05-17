@@ -23,20 +23,22 @@ Iridium Short Burst Data (SBD) message utility.
 
 Usage:
     sbd \
-                             info <file>
+                             info <file> [--compact]
     sbd payload <file>
-    sbd serve <addr> <directory> \
-                             [--logfile=<logfile>]
+    sbd serve <addr> \
+                             <directory> [--logfile=<logfile>]
     sbd (-h | --help)
-    sbd --version
+    sbd \
+                             --version
 
-\
-                             Options:
-    -h --help               Show this information
+Options:
+    -h --help               Show this \
+                             information
+    --version               Show version
     \
-                             --version               Show version
-    --logfile=<logfile>     \
-                             Logfile [default: /var/log/iridiumd.log]
+                             --logfile=<logfile>     Logfile [default: /var/log/iridiumd.log]
+    \
+                             --compact               Don't pretty-print the JSON
 ";
 
 #[derive(Debug, RustcDecodable)]
@@ -48,6 +50,7 @@ struct Args {
     arg_directory: String,
     arg_file: String,
     flag_logfile: String,
+    flag_compact: bool,
 }
 
 struct Logger<P: AsRef<Path>> {
@@ -114,8 +117,11 @@ fn main() {
         match Message::from_path(&args.arg_file) {
             Ok(ref message) => {
                 let ref message = ReadableMessage::new(message);
-                let j = json::as_pretty_json(message);
-                println!("{}", j);
+                if args.flag_compact {
+                    println!("{}", json::as_json(message));
+                } else {
+                    println!("{}", json::as_pretty_json(message));
+                };
             }
             Err(err) => {
                 println!("ERROR: Unable to read message: {}", err);
