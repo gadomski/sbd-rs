@@ -3,7 +3,7 @@
 //! Iridium DirectIP is a service provided by the Iridium company. New Mobile
 //! Originated messages are forwarded from the Iridium servers to a configured
 //! IP address. The Iridum service attempts to initate a TCP connection to port
-//! 10800 at the specified IP. IF the connection is successful, the MO message
+//! 10800 at the specified IP. If the connection is successful, the MO message
 //! is transmitted, then the connection is closed.
 //!
 //! This module provides a `Server` structure, which can be created to run
