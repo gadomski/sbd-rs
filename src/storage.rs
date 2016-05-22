@@ -6,7 +6,7 @@ use std::path::Path;
 use {Result, Error};
 use mo::Message;
 
-const SBD_EXTENSION: &'static str = ".sbd";
+const SBD_EXTENSION: &'static str = "sbd";
 
 /// Trait for all backend SBD storages.
 pub trait Storage {
@@ -65,7 +65,7 @@ impl<P: AsRef<Path>> Storage for FilesystemStorage<P> {
         path_buf.push(message.time_of_session().format("%m").to_string());
         try!(fs::create_dir_all(&path_buf));
         path_buf.push(message.time_of_session()
-            .format(&format!("%y%m%d_%H%M%S{}", SBD_EXTENSION))
+            .format(&format!("%y%m%d_%H%M%S.{}", SBD_EXTENSION))
             .to_string());
         let mut file = try!(fs::File::create(&path_buf));
         try!(message.write_to(&mut file));
