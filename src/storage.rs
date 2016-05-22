@@ -1,7 +1,7 @@
 //! Manage backend SBD message storage.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use {Result, Error};
 use mo::Message;
@@ -20,11 +20,11 @@ pub trait Storage {
 /// Message storage and retrieval are managed by a `Storage` object, which is
 /// configured for a single root directory.
 #[derive(Debug)]
-pub struct FilesystemStorage {
-    root: PathBuf,
+pub struct FilesystemStorage<P: AsRef<Path>> {
+    root: P,
 }
 
-impl FilesystemStorage {
+impl<P: AsRef<Path>> FilesystemStorage<P> {
     /// Opens a new storage for a given directory.
     ///
     /// If the directory does not exist, returns an error.
@@ -36,17 +36,17 @@ impl FilesystemStorage {
     /// let storage = FilesystemStorage::open("data").unwrap();
     /// assert!(FilesystemStorage::open("not/a/directory").is_err());
     /// ```
-    pub fn open<P: AsRef<Path>>(root: P) -> Result<FilesystemStorage> {
+    pub fn open(root: P) -> Result<FilesystemStorage<P>> {
         let metadata = try!(fs::metadata(root.as_ref()));
         if !metadata.is_dir() {
             Err(Error::NotADirectory(root.as_ref().as_os_str().to_os_string()))
         } else {
-            Ok(FilesystemStorage { root: root.as_ref().to_path_buf() })
+            Ok(FilesystemStorage { root: root })
         }
     }
 }
 
-impl Storage for FilesystemStorage {
+impl<P: AsRef<Path>> Storage for FilesystemStorage<P> {
     /// Stores a message on the filesystem.
     ///
     /// # Examples
@@ -59,7 +59,7 @@ impl Storage for FilesystemStorage {
     /// storage.store(&message);
     /// ```
     fn store(&mut self, message: &Message) -> Result<()> {
-        let mut path_buf = self.root.clone();
+        let mut path_buf = self.root.as_ref().to_path_buf();
         path_buf.push(message.imei());
         path_buf.push(message.time_of_session().format("%Y").to_string());
         path_buf.push(message.time_of_session().format("%m").to_string());

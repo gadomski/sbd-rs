@@ -152,7 +152,7 @@ fn main() {
                 println!("ERROR: Could not create logger: {}", e);
                 process::exit(1);
             });
-        let storage = FilesystemStorage::open(&args.arg_directory).unwrap_or_else(|e| {
+        let storage = FilesystemStorage::open(args.arg_directory).unwrap_or_else(|e| {
             println!("ERROR: Could not open storage: {}", e);
             process::exit(1);
         });
