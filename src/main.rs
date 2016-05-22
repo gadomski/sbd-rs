@@ -18,27 +18,26 @@ use sbd::directip::Server;
 use sbd::storage::FilesystemStorage;
 use sbd::mo::{Message, SessionStatus};
 
-const USAGE: &'static str = "
+const USAGE: &'static str =
+    "
 Iridium Short Burst Data (SBD) message utility.
 
 Usage:
-    sbd \
-                             info <file> [--compact]
-    sbd payload <file>
-    sbd serve <addr> \
-                             <directory> [--logfile=<logfile>]
-    sbd (-h | --help)
-    sbd \
-                             --version
+    sbd info <file> [--compact]
+    \
+     sbd payload <file>
+    sbd serve <addr> <directory> [--logfile=<logfile>]
+    sbd (-h | \
+     --help)
+    sbd --version
 
 Options:
-    -h --help               Show this \
-                             information
-    --version               Show version
+    -h --help               Show this information
     \
-                             --logfile=<logfile>     Logfile [default: /var/log/iridiumd.log]
-    \
-                             --compact               Don't pretty-print the JSON
+     --version               Show version
+    --logfile=<logfile>     Logfile [default: \
+     /var/log/iridiumd.log]
+    --compact               Don't pretty-print the JSON
 ";
 
 #[derive(Debug, RustcDecodable)]
@@ -65,16 +64,16 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
     fn log(&self, record: &log::LogRecord) {
         if self.enabled(record.metadata()) {
             let mut file = std::fs::OpenOptions::new()
-                               .create(true)
-                               .write(true)
-                               .append(true)
-                               .open(&self.path)
-                               .unwrap();
+                .create(true)
+                .write(true)
+                .append(true)
+                .open(&self.path)
+                .unwrap();
             file.write_all(format!("({}) {}: {}\n",
                                    chrono::UTC::now().format("%Y-%m-%d %H:%M:%S"),
                                    record.level(),
                                    record.args())
-                               .as_bytes())
+                    .as_bytes())
                 .unwrap();
         }
     }
@@ -109,9 +108,9 @@ impl ReadableMessage {
 
 fn main() {
     let args: Args = Docopt::new(USAGE)
-                         .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
-                         .and_then(|d| d.decode())
-                         .unwrap_or_else(|e| e.exit());
+        .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
+        .and_then(|d| d.decode())
+        .unwrap_or_else(|e| e.exit());
 
     if args.cmd_info {
         match Message::from_path(&args.arg_file) {
@@ -146,9 +145,9 @@ fn main() {
     }
     if args.cmd_serve {
         log::set_logger(|max_log_level| {
-            max_log_level.set(log::LogLevelFilter::Debug);
-            Box::new(Logger { path: args.flag_logfile.clone() })
-        })
+                max_log_level.set(log::LogLevelFilter::Debug);
+                Box::new(Logger { path: args.flag_logfile.clone() })
+            })
             .unwrap_or_else(|e| {
                 println!("ERROR: Could not create logger: {}", e);
                 process::exit(1);

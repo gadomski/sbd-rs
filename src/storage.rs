@@ -65,8 +65,8 @@ impl Storage for FilesystemStorage {
         path_buf.push(message.time_of_session().format("%m").to_string());
         try!(fs::create_dir_all(&path_buf));
         path_buf.push(message.time_of_session()
-                             .format(&format!("%y%m%d_%H%M%S{}", SBD_EXTENSION))
-                             .to_string());
+            .format(&format!("%y%m%d_%H%M%S{}", SBD_EXTENSION))
+            .to_string());
         let mut file = try!(fs::File::create(&path_buf));
         try!(message.write_to(&mut file));
         Ok(())

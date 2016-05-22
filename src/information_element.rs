@@ -62,7 +62,7 @@ impl InformationElement {
         information_element.id = InformationElementType::from(try!(readable.read_u8()));
         information_element.length = try!(readable.read_u16::<BigEndian>());
         let bytes_read = try!(readable.take(information_element.length as u64)
-                                      .read_to_end(&mut information_element.contents));
+            .read_to_end(&mut information_element.contents));
         assert!(!(bytes_read > information_element.length as usize));
         if bytes_read < information_element.length as usize {
             return Err(Error::Undersized(bytes_read + 3));

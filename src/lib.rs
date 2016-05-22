@@ -2,7 +2,8 @@
 //!
 //! # Background
 //!
-//! Iridium is both a [satellite constellation](https://en.wikipedia.org/wiki/Iridium_satellite_constellation)
+//! Iridium is both a
+//! [satellite constellation](https://en.wikipedia.org/wiki/Iridium_satellite_constellation)
 //! and a [company](https://en.wikipedia.org/wiki/Iridium_Communications) that provides satellite
 //! communications. The Iridium network is used by phones, modems, and other communication devices.
 //!
