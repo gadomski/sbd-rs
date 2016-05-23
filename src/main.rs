@@ -24,19 +24,15 @@ Iridium Short Burst Data (SBD) message utility.
 
 Usage:
     sbd info <file> [--compact]
-    \
-     sbd payload <file>
+    sbd payload <file>
     sbd serve <addr> <directory> [--logfile=<logfile>]
-    sbd (-h | \
-     --help)
+    sbd (-h | --help)
     sbd --version
 
 Options:
     -h --help               Show this information
-    \
-     --version               Show version
-    --logfile=<logfile>     Logfile [default: \
-     /var/log/iridiumd.log]
+    --version               Show version
+    --logfile=<logfile>     Logfile [default: /var/log/iridiumd.log]
     --compact               Don't pretty-print the JSON
 ";
 
