@@ -3,6 +3,8 @@
 use std::fs;
 use std::path::Path;
 
+use walkdir;
+
 use {Result, Error};
 use mo::Message;
 use storage;
@@ -41,6 +43,20 @@ impl<P: AsRef<Path>> Storage<P> {
             Ok(Storage { root: root })
         }
     }
+
+    /// Returns a `StorageIterator` over the messages in this storage.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sbd::storage::FilesystemStorage;
+    /// for message in FilesystemStorage::open("data").unwrap().iter() {
+    ///     println!("{:?}", message);
+    /// }
+    /// ```
+    pub fn iter(&self) -> StorageIterator {
+        StorageIterator::new(&self)
+    }
 }
 
 impl<P: AsRef<Path>> storage::Storage for Storage<P> {
@@ -67,6 +83,42 @@ impl<P: AsRef<Path>> storage::Storage for Storage<P> {
         let mut file = try!(fs::File::create(&path_buf));
         try!(message.write_to(&mut file));
         Ok(())
+    }
+}
+
+/// An iterator over the messages in a `Storage`.
+///
+/// For now, this iterator will just return all messages with an `sbd` extension under the root of
+/// the storage tree. We could try to get smarter and mirror the pattern logic for saving, but for
+/// now that's more work and complexity that we need.
+///
+/// # Errors
+///
+/// This iterator's `Item` is a `sbd::Result<Message>`, because a file with an `sbd` extension
+/// might not convert to a message successfully.
+#[allow(missing_debug_implementations)]
+pub struct StorageIterator {
+    iter: walkdir::Iter,
+}
+
+impl StorageIterator {
+    fn new<P: AsRef<Path>>(storage: &Storage<P>) -> StorageIterator {
+        StorageIterator { iter: walkdir::WalkDir::new(&storage.root).into_iter() }
+    }
+}
+
+impl Iterator for StorageIterator {
+    type Item = Result<Message>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter
+            .by_ref()
+            .skip_while(|r| {
+                r.as_ref()
+                    .map(|d| d.path().extension().map(|e| e != SBD_EXTENSION).unwrap_or(true))
+                    .unwrap_or(true)
+            })
+            .next()
+            .map(|r| r.map_err(|e| Error::from(e)).and_then(|d| Message::from_path(d.path())))
     }
 }
 
@@ -109,5 +161,15 @@ mod tests {
         message_path.push("07");
         message_path.push("150709_181508.sbd");
         Message::from_path(message_path).unwrap();
+    }
+
+    #[test]
+    fn iter() {
+        let tempdir = TempDir::new("").unwrap();
+        let mut storage = Storage::open(tempdir.path()).unwrap();
+        assert_eq!(0, storage.iter().collect::<Vec<_>>().len());
+        let message = Message::from_path("data/0-mo.sbd").unwrap();
+        storage.store(&message).unwrap();
+        assert_eq!(1, storage.iter().collect::<Vec<_>>().len());
     }
 }
