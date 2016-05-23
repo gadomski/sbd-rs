@@ -6,6 +6,7 @@ use std::ffi::OsString;
 use std::fmt;
 
 use byteorder;
+use walkdir;
 
 use information_element::{InformationElementType, InformationElement};
 
@@ -36,6 +37,8 @@ pub enum Error {
     ///
     /// This is bad, because we might not write those IEs back out.
     UnhandledInformationElements(HashMap<InformationElementType, InformationElement>),
+    /// Wrapper around `walkdir::Error`.
+    WalkDir(walkdir::Error),
 }
 
 impl fmt::Display for Error {
@@ -59,6 +62,7 @@ impl fmt::Display for Error {
             Error::UnhandledInformationElements(ref ies) => {
                 write!(f, "Unhandled information elements: {:?}", ies)
             }
+            Error::WalkDir(ref err) => write!(f, "WalkDir error: {}", err),
         }
     }
 }
@@ -76,6 +80,7 @@ impl std::error::Error for Error {
             Error::Oversized => "oversized message",
             Error::Undersized(_) => "undersized message",
             Error::UnhandledInformationElements(_) => "unhandled information elements",
+            Error::WalkDir(ref err) => err.description(),
         }
     }
 
@@ -83,6 +88,7 @@ impl std::error::Error for Error {
         match *self {
             Error::Byteorder(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
+            Error::WalkDir(ref err) => Some(err),
             _ => None,
         }
     }
@@ -97,5 +103,11 @@ impl From<byteorder::Error> for Error {
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Error {
         Error::Io(err)
+    }
+}
+
+impl From<walkdir::Error> for Error {
+    fn from(err: walkdir::Error) -> Error {
+        Error::WalkDir(err)
     }
 }
