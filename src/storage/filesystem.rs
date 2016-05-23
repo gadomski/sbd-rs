@@ -1,18 +1,13 @@
-//! Manage backend SBD message storage.
+//! Store SBD messages on the filesystem.
 
 use std::fs;
 use std::path::Path;
 
 use {Result, Error};
 use mo::Message;
+use storage;
 
 const SBD_EXTENSION: &'static str = "sbd";
-
-/// Trait for all backend SBD storages.
-pub trait Storage {
-    /// Stores message in this storage.
-    fn store(&mut self, message: &Message) -> Result<()>;
-}
 
 /// A structure for managing storing and retriving SBD messages on a filesystem.
 ///
@@ -20,11 +15,11 @@ pub trait Storage {
 /// Message storage and retrieval are managed by a `Storage` object, which is
 /// configured for a single root directory.
 #[derive(Debug)]
-pub struct FilesystemStorage<P: AsRef<Path>> {
+pub struct Storage<P: AsRef<Path>> {
     root: P,
 }
 
-impl<P: AsRef<Path>> FilesystemStorage<P> {
+impl<P: AsRef<Path>> Storage<P> {
     /// Opens a new storage for a given directory.
     ///
     /// If the directory does not exist, returns an error.
@@ -36,17 +31,17 @@ impl<P: AsRef<Path>> FilesystemStorage<P> {
     /// let storage = FilesystemStorage::open("data").unwrap();
     /// assert!(FilesystemStorage::open("not/a/directory").is_err());
     /// ```
-    pub fn open(root: P) -> Result<FilesystemStorage<P>> {
+    pub fn open(root: P) -> Result<Storage<P>> {
         let metadata = try!(fs::metadata(root.as_ref()));
         if !metadata.is_dir() {
             Err(Error::NotADirectory(root.as_ref().as_os_str().to_os_string()))
         } else {
-            Ok(FilesystemStorage { root: root })
+            Ok(Storage { root: root })
         }
     }
 }
 
-impl<P: AsRef<Path>> Storage for FilesystemStorage<P> {
+impl<P: AsRef<Path>> storage::Storage for Storage<P> {
     /// Stores a message on the filesystem.
     ///
     /// # Examples
@@ -73,80 +68,37 @@ impl<P: AsRef<Path>> Storage for FilesystemStorage<P> {
     }
 }
 
-/// A simple storage backend that saves the messages in memory.
-///
-/// This shouldn't be used for persistent storage.
-#[derive(Debug)]
-pub struct MemoryStorage {
-    messages: Vec<Message>,
-}
-
-impl MemoryStorage {
-    /// Creates a new memory storage.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let storage = sbd::storage::MemoryStorage::new();
-    /// ```
-    pub fn new() -> MemoryStorage {
-        MemoryStorage { messages: Vec::new() }
-    }
-
-    /// Returns a reference to the underlying message vector.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sbd::storage::Storage;
-    /// let mut storage = sbd::storage::MemoryStorage::new();
-    /// assert!(storage.messages().is_empty());
-    /// storage.store(&sbd::mo::Message::from_path("data/0-mo.sbd").unwrap());
-    /// assert_eq!(1, storage.messages().len());
-    /// ```
-    pub fn messages(&self) -> &Vec<Message> {
-        &self.messages
-    }
-}
-
-impl Storage for MemoryStorage {
-    fn store(&mut self, message: &Message) -> Result<()> {
-        self.messages.push((*message).clone());
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     extern crate tempdir;
+    use self::tempdir::TempDir;
 
     use super::*;
 
-    use std::path::PathBuf;
-
-    use self::tempdir::TempDir;
-
     use mo::Message;
+    use storage::Storage as StorageTrait;
 
     #[test]
     fn filesystem_storage_open() {
-        FilesystemStorage::open(TempDir::new("").unwrap().path()).unwrap();
+        Storage::open(TempDir::new("").unwrap().path()).unwrap();
     }
 
     #[test]
     fn filesystem_storage_dne() {
-        assert!(FilesystemStorage::open("not/a/real/directory").is_err());
+        assert!(Storage::open("not/a/real/directory").is_err());
     }
 
     #[test]
     fn filesystem_storage_is_file() {
-        assert!(FilesystemStorage::open("data/0-mo.sbd").is_err());
+        assert!(Storage::open("data/0-mo.sbd").is_err());
     }
 
     #[test]
     fn store_message() {
         let tempdir = TempDir::new("").unwrap();
-        let mut storage = FilesystemStorage::open(tempdir.path()).unwrap();
+        let mut storage = Storage::open(tempdir.path()).unwrap();
         let message = Message::from_path("data/0-mo.sbd").unwrap();
         storage.store(&message).unwrap();
         let mut message_path = PathBuf::from(tempdir.path());
@@ -155,14 +107,5 @@ mod tests {
         message_path.push("07");
         message_path.push("150709_181508.sbd");
         Message::from_path(message_path).unwrap();
-    }
-
-    #[test]
-    fn store_memory() {
-        let mut storage = MemoryStorage::new();
-        let message = Message::from_path("data/0-mo.sbd").unwrap();
-        storage.store(&message).unwrap();
-        let ref stored_message = storage.messages()[0];
-        assert_eq!(&message, stored_message);
     }
 }
