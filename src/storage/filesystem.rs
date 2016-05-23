@@ -83,22 +83,22 @@ mod tests {
     use storage::Storage as StorageTrait;
 
     #[test]
-    fn filesystem_storage_open() {
+    fn open() {
         Storage::open(TempDir::new("").unwrap().path()).unwrap();
     }
 
     #[test]
-    fn filesystem_storage_dne() {
+    fn no_directory() {
         assert!(Storage::open("not/a/real/directory").is_err());
     }
 
     #[test]
-    fn filesystem_storage_is_file() {
+    fn file_is_error() {
         assert!(Storage::open("data/0-mo.sbd").is_err());
     }
 
     #[test]
-    fn store_message() {
+    fn store() {
         let tempdir = TempDir::new("").unwrap();
         let mut storage = Storage::open(tempdir.path()).unwrap();
         let message = Message::from_path("data/0-mo.sbd").unwrap();

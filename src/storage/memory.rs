@@ -55,7 +55,7 @@ mod tests {
     use storage::Storage as StorageTrait;
 
     #[test]
-    fn store_memory() {
+    fn store() {
         let mut storage = Storage::new();
         let message = Message::from_path("data/0-mo.sbd").unwrap();
         storage.store(&message).unwrap();
