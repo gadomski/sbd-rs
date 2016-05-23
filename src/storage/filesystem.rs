@@ -22,7 +22,9 @@ pub struct Storage<P: AsRef<Path>> {
 impl<P: AsRef<Path>> Storage<P> {
     /// Opens a new storage for a given directory.
     ///
-    /// If the directory does not exist, returns an error.
+    /// # Errors
+    ///
+    /// If the directory does not exist, returns an `NotADirectory` error.
     ///
     /// # Examples
     ///
