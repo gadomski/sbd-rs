@@ -37,6 +37,8 @@ pub enum Error {
     ///
     /// This is bad, because we might not write those IEs back out.
     UnhandledInformationElements(HashMap<InformationElementType, InformationElement>),
+    /// Wrapper around `std::str::Utf8Error`.
+    Utf8(std::str::Utf8Error),
     /// Wrapper around `walkdir::Error`.
     WalkDir(walkdir::Error),
 }
@@ -62,6 +64,7 @@ impl fmt::Display for Error {
             Error::UnhandledInformationElements(ref ies) => {
                 write!(f, "Unhandled information elements: {:?}", ies)
             }
+            Error::Utf8(ref err) => write!(f, "Utf8 error: {}", err),
             Error::WalkDir(ref err) => write!(f, "WalkDir error: {}", err),
         }
     }
@@ -80,6 +83,7 @@ impl std::error::Error for Error {
             Error::Oversized => "oversized message",
             Error::Undersized(_) => "undersized message",
             Error::UnhandledInformationElements(_) => "unhandled information elements",
+            Error::Utf8(ref err) => err.description(),
             Error::WalkDir(ref err) => err.description(),
         }
     }
@@ -88,6 +92,7 @@ impl std::error::Error for Error {
         match *self {
             Error::Byteorder(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
+            Error::Utf8(ref err) => Some(err),
             Error::WalkDir(ref err) => Some(err),
             _ => None,
         }
@@ -109,5 +114,11 @@ impl From<std::io::Error> for Error {
 impl From<walkdir::Error> for Error {
     fn from(err: walkdir::Error) -> Error {
         Error::WalkDir(err)
+    }
+}
+
+impl From<std::str::Utf8Error> for Error {
+    fn from(err: std::str::Utf8Error) -> Error {
+        Error::Utf8(err)
     }
 }

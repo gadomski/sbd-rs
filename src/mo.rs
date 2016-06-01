@@ -291,6 +291,10 @@ impl Message {
     pub fn payload_ref(&self) -> &Vec<u8> {
         &self.payload
     }
+    /// Returns this message's payload as a str.
+    pub fn payload_str(&self) -> Result<&str> {
+        str::from_utf8(&self.payload).map_err(|e| Error::from(e))
+    }
 
     /// Returns the overall message length, as is contained in the message's header.
     ///
@@ -387,5 +391,11 @@ mod tests {
         let default: Message = Default::default();
         let message = Message::from_path("data/0-mo.sbd").unwrap();
         assert!(message > default);
+    }
+
+    #[test]
+    fn payload_str() {
+        let message = Message::from_path("data/0-mo.sbd").unwrap();
+        assert_eq!("test message from pete", message.payload_str().unwrap());
     }
 }
