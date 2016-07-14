@@ -106,6 +106,8 @@ impl From<u8> for SessionStatus {
 }
 
 /// A mobile-origined Iridium SBD message.
+///
+/// `Message`s can be ordered by time of session.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Message {
     protocol_revision_number: ProtocolRevisionNumber,
