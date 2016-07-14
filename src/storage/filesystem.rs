@@ -68,7 +68,7 @@ impl<P: AsRef<Path>> storage::Storage for Storage<P> {
     /// use sbd::storage::{FilesystemStorage, Storage};
     /// use sbd::mo::Message;
     /// let message: Message = Default::default();
-    /// let storage = FilesystemStorage::open("/var/iridium").unwrap();
+    /// let mut storage = FilesystemStorage::open("/var/iridium").unwrap();
     /// storage.store(&message);
     /// ```
     fn store(&mut self, message: &Message) -> Result<()> {
