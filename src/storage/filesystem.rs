@@ -90,7 +90,7 @@ impl<P: AsRef<Path>> storage::Storage for Storage<P> {
 ///
 /// For now, this iterator will just return all messages with an `sbd` extension under the root of
 /// the storage tree. We could try to get smarter and mirror the pattern logic for saving, but for
-/// now that's more work and complexity that we need.
+/// now that's more work and complexity than we need.
 ///
 /// # Errors
 ///
