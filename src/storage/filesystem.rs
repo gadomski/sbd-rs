@@ -1,7 +1,7 @@
 //! Store SBD messages on the filesystem.
 
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use walkdir;
 
@@ -17,11 +17,11 @@ const SBD_EXTENSION: &'static str = "sbd";
 /// Message storage and retrieval are managed by a `Storage` object, which is
 /// configured for a single root directory.
 #[derive(Debug)]
-pub struct Storage<P: AsRef<Path>> {
-    root: P,
+pub struct Storage {
+    root: PathBuf,
 }
 
-impl<P: AsRef<Path>> Storage<P> {
+impl Storage {
     /// Opens a new storage for a given directory.
     ///
     /// # Errors
@@ -35,12 +35,12 @@ impl<P: AsRef<Path>> Storage<P> {
     /// let storage = FilesystemStorage::open("data").unwrap();
     /// assert!(FilesystemStorage::open("not/a/directory").is_err());
     /// ```
-    pub fn open(root: P) -> Result<Storage<P>> {
+    pub fn open<P: AsRef<Path>>(root: P) -> Result<Storage> {
         let metadata = try!(fs::metadata(root.as_ref()));
         if !metadata.is_dir() {
             Err(Error::NotADirectory(root.as_ref().as_os_str().to_os_string()))
         } else {
-            Ok(Storage { root: root })
+            Ok(Storage { root: root.as_ref().to_path_buf() })
         }
     }
 
@@ -59,7 +59,7 @@ impl<P: AsRef<Path>> Storage<P> {
     }
 }
 
-impl<P: AsRef<Path>> storage::Storage for Storage<P> {
+impl storage::Storage for Storage {
     /// Stores a message on the filesystem.
     ///
     /// # Examples
@@ -72,7 +72,7 @@ impl<P: AsRef<Path>> storage::Storage for Storage<P> {
     /// storage.store(&message);
     /// ```
     fn store(&mut self, message: &Message) -> Result<()> {
-        let mut path_buf = self.root.as_ref().to_path_buf();
+        let mut path_buf = self.root.clone();
         path_buf.push(message.imei());
         path_buf.push(message.time_of_session().format("%Y").to_string());
         path_buf.push(message.time_of_session().format("%m").to_string());
@@ -102,7 +102,7 @@ pub struct StorageIterator {
 }
 
 impl StorageIterator {
-    fn new<P: AsRef<Path>>(storage: &Storage<P>) -> StorageIterator {
+    fn new(storage: &Storage) -> StorageIterator {
         StorageIterator { iter: walkdir::WalkDir::new(&storage.root).into_iter() }
     }
 }
