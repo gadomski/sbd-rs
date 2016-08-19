@@ -60,17 +60,6 @@ impl Storage {
 }
 
 impl storage::Storage for Storage {
-    /// Stores a message on the filesystem.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use sbd::storage::{FilesystemStorage, Storage};
-    /// use sbd::mo::Message;
-    /// let message: Message = Default::default();
-    /// let mut storage = FilesystemStorage::open("/var/iridium").unwrap();
-    /// storage.store(&message);
-    /// ```
     fn store(&mut self, message: &Message) -> Result<()> {
         let mut path_buf = self.root.clone();
         path_buf.push(message.imei());
@@ -83,6 +72,10 @@ impl storage::Storage for Storage {
         let mut file = try!(fs::File::create(&path_buf));
         try!(message.write_to(&mut file));
         Ok(())
+    }
+
+    fn messages(&self) -> Result<Vec<Message>> {
+        self.iter().collect()
     }
 }
 

@@ -23,27 +23,16 @@ impl Storage {
     pub fn new() -> Storage {
         Storage { messages: Vec::new() }
     }
-
-    /// Returns a reference to the underlying message vector.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sbd::storage::{MemoryStorage, Storage};
-    /// let mut storage = MemoryStorage::new();
-    /// assert!(storage.messages().is_empty());
-    /// storage.store(&sbd::mo::Message::from_path("data/0-mo.sbd").unwrap());
-    /// assert_eq!(1, storage.messages().len());
-    /// ```
-    pub fn messages(&self) -> &Vec<Message> {
-        &self.messages
-    }
 }
 
 impl storage::Storage for Storage {
     fn store(&mut self, message: &Message) -> Result<()> {
         self.messages.push((*message).clone());
         Ok(())
+    }
+
+    fn messages(&self) -> Result<Vec<Message>> {
+        Ok(self.messages.clone())
     }
 }
 
@@ -59,7 +48,7 @@ mod tests {
         let mut storage = Storage::new();
         let message = Message::from_path("data/0-mo.sbd").unwrap();
         storage.store(&message).unwrap();
-        let ref stored_message = storage.messages()[0];
+        let ref stored_message = storage.messages().unwrap()[0];
         assert_eq!(&message, stored_message);
     }
 }
