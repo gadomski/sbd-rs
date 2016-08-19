@@ -1,7 +1,4 @@
-//! SBD message storage.
-//!
-//! We can store messages in one of several backends, provided as submodules here. Storages
-//! implement the `Storage` trait.
+//! Squirrel away SBD messages and retrieve them later.
 
 mod filesystem;
 mod memory;
@@ -12,8 +9,18 @@ pub use self::memory::Storage as MemoryStorage;
 use Result;
 use mo::Message;
 
-/// Trait for all backend SBD storages.
+/// Basic storage operations.
 pub trait Storage {
-    /// Stores message in this storage.
+    /// Place a message into this storage.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use sbd::mo::Message;
+    /// # use sbd::storage::{Storage, MemoryStorage};
+    /// let message = Message::from_path("data/0-mo.sbd").unwrap();
+    /// let mut storage = MemoryStorage::new();
+    /// storage.store(&message);
+    /// ```
     fn store(&mut self, message: &Message) -> Result<()>;
 }
