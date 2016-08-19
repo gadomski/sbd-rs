@@ -55,7 +55,7 @@ impl Storage {
     /// }
     /// ```
     pub fn iter(&self) -> StorageIterator {
-        StorageIterator::new(&self)
+        StorageIterator::new(&self.root)
     }
 }
 
@@ -77,6 +77,12 @@ impl storage::Storage for Storage {
     fn messages(&self) -> Result<Vec<Message>> {
         self.iter().collect()
     }
+
+    fn messages_from_imei(&self, imei: &str) -> Result<Vec<Message>> {
+        let mut path = self.root.clone();
+        path.push(imei);
+        StorageIterator::new(&path).collect()
+    }
 }
 
 /// An iterator over the messages in a `Storage`.
@@ -95,8 +101,8 @@ pub struct StorageIterator {
 }
 
 impl StorageIterator {
-    fn new(storage: &Storage) -> StorageIterator {
-        StorageIterator { iter: walkdir::WalkDir::new(&storage.root).into_iter() }
+    fn new(root: &Path) -> StorageIterator {
+        StorageIterator { iter: walkdir::WalkDir::new(root).into_iter() }
     }
 }
 
@@ -165,4 +171,17 @@ mod tests {
         storage.store(message).unwrap();
         assert_eq!(1, storage.iter().collect::<Vec<_>>().len());
     }
+
+    #[test]
+    fn messages_from_imei() {
+        let tempdir = TempDir::new("").unwrap();
+        let mut storage = Storage::open(tempdir.path()).unwrap();
+        let message = Message::from_path("data/0-mo.sbd").unwrap();
+        storage.store(message.clone()).unwrap();
+        let messages = storage.messages_from_imei("300234063904190").unwrap();
+        assert_eq!(vec![message], messages);
+        let messages = storage.messages_from_imei("300234063904191").unwrap();
+        assert!(messages.is_empty());
+    }
+
 }
