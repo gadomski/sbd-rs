@@ -7,7 +7,7 @@ use mo::Message;
 use storage;
 
 /// A simple storage backend that saves the messages in memory.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Storage {
     messages: Vec<Message>,
 }

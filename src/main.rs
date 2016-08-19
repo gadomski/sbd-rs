@@ -111,7 +111,7 @@ fn main() {
     if args.cmd_info {
         match Message::from_path(&args.arg_file) {
             Ok(ref message) => {
-                let ref message = ReadableMessage::new(message);
+                let message = &ReadableMessage::new(message);
                 if args.flag_compact {
                     println!("{}", json::as_json(message));
                 } else {

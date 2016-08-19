@@ -12,7 +12,7 @@
 //! Messages can be Mobile-Originated (MO), meaning that they are sent *from* an Iridium modem, or
 //! Mobile-Terminated (MT), meaning that the are sent *to* an Iridium modem. Mobile-Originated
 //! messages are delivered either to an email address via MIME attachment, or directly to a given
-//! IP address and port via TCP; this second method is called DirectIP.
+//! IP address and port via TCP; this second method is called `DirectIP`.
 //!
 //! # Usage
 //!
@@ -27,7 +27,7 @@
 //! let message = sbd::mo::Message::read_from(file).unwrap();
 //! ```
 //!
-//! To receive MO messages via DirectIP, a server is provided.
+//! To receive MO messages via `DirectIP`, a server is provided.
 //! This server will listen for incoming messages forever, storing them in a `Storage`:
 //!
 //! ```no_run
@@ -38,7 +38,7 @@
 //!
 //! Most of the functionality of this library is exposed by a single executable, named `sbd`.  Use
 //! the `sbd` executable to inspect raw sbd files stores on a filesystem, interrogate sbd files on a
-//! filesystem, and start that forever-running server to receive Iridium SBD DirectIP messages.
+//! filesystem, and start that forever-running server to receive Iridium SBD `DirectIP` messages.
 
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
         trivial_numeric_casts, unsafe_code, unstable_features, unused_extern_crates,

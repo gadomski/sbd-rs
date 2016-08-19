@@ -113,11 +113,11 @@ impl Iterator for StorageIterator {
             .by_ref()
             .skip_while(|r| {
                 r.as_ref()
-                    .map(|d| d.path().extension().map(|e| e != SBD_EXTENSION).unwrap_or(true))
+                    .map(|d| d.path().extension().map_or(true, |e| e != SBD_EXTENSION))
                     .unwrap_or(true)
             })
             .next()
-            .map(|r| r.map_err(|e| Error::from(e)).and_then(|d| Message::from_path(d.path())))
+            .map(|r| r.map_err(Error::from).and_then(|d| Message::from_path(d.path())))
     }
 }
 

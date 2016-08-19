@@ -1,6 +1,6 @@
 //! Receive incoming Iridium messages through their Direct IP service.
 //!
-//! Iridium DirectIP is a service provided by the Iridium company. New Mobile
+//! Iridium `DirectIP` is a service provided by the Iridium company. New Mobile
 //! Originated messages are forwarded from the Iridium servers to a configured
 //! IP address. The Iridum service attempts to initate a TCP connection to port
 //! 10800 at the specified IP. If the connection is successful, the MO message
@@ -17,7 +17,7 @@ use std::thread;
 use storage::Storage;
 use mo::Message;
 
-/// A Iridium DirectIP server.
+/// A Iridium `DirectIP` server.
 ///
 /// The server will listen on a socket address for incoming Iridium SBD Mobile Originated
 /// messages. Incoming messages will be stored using `sbd::filesystem::Storage`. Errors are logged
@@ -112,7 +112,7 @@ impl<A, S> Server<A, S>
     }
 }
 
-/// Handles an incoming DirectIP stream.
+/// Handles an incoming `DirectIP` stream.
 fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
     match stream.peer_addr() {
         Ok(addr) => {

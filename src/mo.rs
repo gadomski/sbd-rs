@@ -56,7 +56,7 @@ impl Imei {
 
 /// The status of a mobile-originated session.
 ///
-/// The descriptions for these codes are taken directly from the DirectIP documentation.
+/// The descriptions for these codes are taken directly from the `DirectIP` documentation.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, RustcEncodable)]
 pub enum SessionStatus {
     /// The SBD session completed successfully.
@@ -295,7 +295,7 @@ impl Message {
     }
     /// Returns this message's payload as a str.
     pub fn payload_str(&self) -> Result<&str> {
-        str::from_utf8(&self.payload).map_err(|e| Error::from(e))
+        str::from_utf8(&self.payload).map_err(Error::from)
     }
 
     /// Returns the overall message length, as is contained in the message's header.
