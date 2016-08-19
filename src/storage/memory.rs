@@ -26,8 +26,8 @@ impl Storage {
 }
 
 impl storage::Storage for Storage {
-    fn store(&mut self, message: &Message) -> Result<()> {
-        self.messages.push((*message).clone());
+    fn store(&mut self, message: Message) -> Result<()> {
+        self.messages.push(message);
         Ok(())
     }
 
@@ -47,7 +47,7 @@ mod tests {
     fn store() {
         let mut storage = Storage::new();
         let message = Message::from_path("data/0-mo.sbd").unwrap();
-        storage.store(&message).unwrap();
+        storage.store(message.clone()).unwrap();
         let ref stored_message = storage.messages().unwrap()[0];
         assert_eq!(&message, stored_message);
     }

@@ -11,7 +11,7 @@ use mo::Message;
 
 /// Basic storage operations.
 pub trait Storage {
-    /// Place a message into this storage.
+    /// Stores a message, consuming it.
     ///
     /// # Examples
     ///
@@ -20,11 +20,11 @@ pub trait Storage {
     /// # use sbd::storage::{Storage, MemoryStorage};
     /// let message = Message::from_path("data/0-mo.sbd").unwrap();
     /// let mut storage = MemoryStorage::new();
-    /// storage.store(&message);
+    /// storage.store(message);
     /// ```
-    fn store(&mut self, message: &Message) -> Result<()>;
+    fn store(&mut self, message: Message) -> Result<()>;
 
-    /// Retrieve all messages in this storage as a vector.
+    /// Retrieves all messages in this storage as a vector.
     ///
     /// # Examples
     ///
@@ -33,7 +33,7 @@ pub trait Storage {
     /// # use sbd::storage::{Storage, MemoryStorage};
     /// let message = Message::from_path("data/0-mo.sbd").unwrap();
     /// let mut storage = MemoryStorage::new();
-    /// storage.store(&message);
+    /// storage.store(message.clone());
     /// let messages = storage.messages().unwrap();
     /// assert_eq!(vec![message], messages);
     /// ```

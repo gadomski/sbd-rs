@@ -60,7 +60,7 @@ impl Storage {
 }
 
 impl storage::Storage for Storage {
-    fn store(&mut self, message: &Message) -> Result<()> {
+    fn store(&mut self, message: Message) -> Result<()> {
         let mut path_buf = self.root.clone();
         path_buf.push(message.imei());
         path_buf.push(message.time_of_session().format("%Y").to_string());
@@ -147,7 +147,7 @@ mod tests {
         let tempdir = TempDir::new("").unwrap();
         let mut storage = Storage::open(tempdir.path()).unwrap();
         let message = Message::from_path("data/0-mo.sbd").unwrap();
-        storage.store(&message).unwrap();
+        storage.store(message).unwrap();
         let mut message_path = PathBuf::from(tempdir.path());
         message_path.push("300234063904190");
         message_path.push("2015");
@@ -162,7 +162,7 @@ mod tests {
         let mut storage = Storage::open(tempdir.path()).unwrap();
         assert_eq!(0, storage.iter().collect::<Vec<_>>().len());
         let message = Message::from_path("data/0-mo.sbd").unwrap();
-        storage.store(&message).unwrap();
+        storage.store(message).unwrap();
         assert_eq!(1, storage.iter().collect::<Vec<_>>().len());
     }
 }

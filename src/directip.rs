@@ -123,7 +123,7 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
                   err);
         }
     }
-    let ref message = match Message::read_from(stream) {
+    let message = match Message::read_from(stream) {
         Ok(message) => {
             info!("Recieved message from IMEI {} with MOMN {} and {} byte payload",
                   message.imei(),
