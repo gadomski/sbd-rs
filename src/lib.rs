@@ -44,6 +44,13 @@
         trivial_numeric_casts, unsafe_code, unstable_features, unused_extern_crates,
         unused_import_braces, unused_qualifications)]
 
+extern crate byteorder;
+extern crate chrono;
+#[macro_use]
+extern crate log;
+extern crate rustc_serialize;
+extern crate walkdir;
+
 pub mod directip;
 pub mod error;
 mod information_element;
@@ -51,13 +58,6 @@ pub mod mo;
 pub mod storage;
 
 pub use error::Error;
-
-extern crate byteorder;
-extern crate chrono;
-#[macro_use]
-extern crate log;
-extern crate rustc_serialize;
-extern crate walkdir;
 
 /// Create-specific `Result`.
 pub type Result<T> = std::result::Result<T, Error>;
