@@ -16,7 +16,7 @@ const SBD_EXTENSION: &'static str = "sbd";
 /// Messages are stored in a directory hierarchy under a single root directory.
 /// Message storage and retrieval are managed by a `Storage` object, which is
 /// configured for a single root directory.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Storage {
     root: PathBuf,
 }
