@@ -11,7 +11,7 @@ use std::str;
 use std::path::Path;
 
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use chrono::{DateTime, Duration, TimeZone, UTC};
+use chrono::{DateTime, Duration, TimeZone, Utc};
 
 use {Error, Result};
 use information_element::{InformationElement, InformationElementType};
@@ -116,7 +116,7 @@ pub struct Message {
     session_status: SessionStatus,
     momsn: u16,
     mtmsn: u16,
-    time_of_session: DateTime<UTC>,
+    time_of_session: DateTime<Utc>,
     payload: Vec<u8>,
 }
 
@@ -129,7 +129,7 @@ impl Default for Message {
             session_status: Default::default(),
             momsn: Default::default(),
             mtmsn: Default::default(),
-            time_of_session: UTC.ymd(1970, 1, 1).and_hms(0, 0, 0),
+            time_of_session: Utc.ymd(1970, 1, 1).and_hms(0, 0, 0),
             payload: Vec::new(),
         }
     }
@@ -215,7 +215,7 @@ impl Message {
         message.session_status = SessionStatus::from(try!(cursor.read_u8()));
         message.momsn = try!(cursor.read_u16::<BigEndian>());
         message.mtmsn = try!(cursor.read_u16::<BigEndian>());
-        message.time_of_session = UTC.ymd(1970, 1, 1).and_hms(0, 0, 0) +
+        message.time_of_session = Utc.ymd(1970, 1, 1).and_hms(0, 0, 0) +
                                   Duration::seconds(try!(cursor.read_u32::<BigEndian>()) as i64);
 
         let payload =
@@ -286,7 +286,7 @@ impl Message {
         self.mtmsn
     }
     /// Returns this message's time of session.
-    pub fn time_of_session(&self) -> DateTime<UTC> {
+    pub fn time_of_session(&self) -> DateTime<Utc> {
         self.time_of_session
     }
     /// Returns a reference to this message's payload.
@@ -316,7 +316,7 @@ mod tests {
     use std::io::{Cursor, Read};
     use std::str;
 
-    use chrono::{TimeZone, UTC};
+    use chrono::{TimeZone, Utc};
 
     #[test]
     fn from_path() {
@@ -362,7 +362,7 @@ mod tests {
         assert_eq!(SessionStatus::Ok, message.session_status());
         assert_eq!(75, message.momsn());
         assert_eq!(0, message.mtmsn());
-        assert_eq!(UTC.ymd(2015, 7, 9).and_hms(18, 15, 8),
+        assert_eq!(Utc.ymd(2015, 7, 9).and_hms(18, 15, 8),
                    message.time_of_session());
         assert_eq!("test message from pete",
                    str::from_utf8(message.payload_ref()).unwrap());

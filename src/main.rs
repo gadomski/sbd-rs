@@ -18,8 +18,7 @@ use sbd::directip::Server;
 use sbd::storage::FilesystemStorage;
 use sbd::mo::{Message, SessionStatus};
 
-const USAGE: &'static str =
-    "
+const USAGE: &'static str = "
 Iridium Short Burst Data (SBD) message utility.
 
 Usage:
@@ -66,10 +65,10 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
                 .open(&self.path)
                 .unwrap();
             file.write_all(format!("({}) {}: {}\n",
-                                   chrono::UTC::now().format("%Y-%m-%d %H:%M:%S"),
+                                   chrono::Utc::now().format("%Y-%m-%d %H:%M:%S"),
                                    record.level(),
                                    record.args())
-                    .as_bytes())
+                                   .as_bytes())
                 .unwrap();
         }
     }
@@ -141,13 +140,13 @@ fn main() {
     }
     if args.cmd_serve {
         log::set_logger(|max_log_level| {
-                max_log_level.set(log::LogLevelFilter::Debug);
-                Box::new(Logger { path: args.flag_logfile.clone() })
-            })
-            .unwrap_or_else(|e| {
-                println!("ERROR: Could not create logger: {}", e);
-                process::exit(1);
-            });
+                            max_log_level.set(log::LogLevelFilter::Debug);
+                            Box::new(Logger { path: args.flag_logfile.clone() })
+                        })
+                .unwrap_or_else(|e| {
+                                    println!("ERROR: Could not create logger: {}", e);
+                                    process::exit(1);
+                                });
         let storage = FilesystemStorage::open(args.arg_directory).unwrap_or_else(|e| {
             println!("ERROR: Could not open storage: {}", e);
             process::exit(1);
