@@ -126,7 +126,7 @@ fn main() {
     if args.cmd_payload {
         match Message::from_path(&args.arg_file) {
             Ok(message) => {
-                println!("{}",
+                print!("{}",
                          str::from_utf8(message.payload_ref()).unwrap_or_else(|e| {
                              println!("ERROR: Unable to convert payload to utf8: {}", e);
                              process::exit(1);
