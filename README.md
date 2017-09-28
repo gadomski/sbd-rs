@@ -1,7 +1,7 @@
 # sbd-rs
 
 Native rust library to read and write Iridium Short Burt Data (SBD) messages, and an executable that exposes some of that library's functionality.
-Documentation is available [online](http://gadomski.github.com/sbd-rs), and they include some background on Iridum and its Short Burst Data (SBD) services.
+Documentation is available [online](https://docs.rs/sbd), and they include some background on Iridum and its Short Burst Data (SBD) services.
 
 [![Build Status](https://travis-ci.org/gadomski/sbd-rs.svg?branch=master)](https://travis-ci.org/gadomski/sbd-rs)
 [![Crates.io](http://meritbadge.herokuapp.com/sbd)](https://crates.io/crates/sbd)
