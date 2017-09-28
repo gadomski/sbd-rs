@@ -1,6 +1,6 @@
 [package]
 name = "sbd"
-version = "0.1.8"
+version = "0.1.9"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 description = "Read and write Iridium Short Burst Data (SBD) messages"
 repository = "https://github.com/gadomski/sbd-rs"
