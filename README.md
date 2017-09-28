@@ -4,7 +4,8 @@ Native rust library to read and write Iridium Short Burt Data (SBD) messages, an
 Documentation is available [online](http://gadomski.github.com/sbd-rs), and they include some background on Iridum and its Short Burst Data (SBD) services.
 
 [![Build Status](https://travis-ci.org/gadomski/sbd-rs.svg?branch=master)](https://travis-ci.org/gadomski/sbd-rs)
-[![](http://meritbadge.herokuapp.com/sbd)](https://crates.io/crates/sbd)
+[![Crates.io](http://meritbadge.herokuapp.com/sbd)](https://crates.io/crates/sbd)
+[![Documentation](https://docs.rs/sbd/badge.svg)](https://docs.rs/sbd)
 
 ## Building the executable
 
@@ -18,7 +19,7 @@ cargo install sbd
 
 The executable includes a couple of powers, including a "run-forever" server for receiving Iridium SBD DirectIP messages and storing those messages to the filesystem.
 This `sbd serve` power *does not* include any sort of daemonization; you have to roll your own.
-I've provided an example `init.d` script in `init.d/iridiumd` to get things started.
+I personally use [supervisord](http://supervisord.org/).
 
 ## Using the library
 
@@ -35,7 +36,7 @@ Please open issues and/or pull requests through the [github interface](https://g
 
 ## Authors
 
-This code was cobbled together by Pete Gadomski <pete.gadomski@gmail.com>.
+This code was cobbled together by Pete Gadomski <pete@gadom.ski>.
 
 ## License
 
