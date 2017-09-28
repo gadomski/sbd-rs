@@ -3,18 +3,18 @@
 //! Though messages technically come in two flavors, mobile originated and mobile terminated, we
 //! only handle mobile originated messages in this library.
 
+
+use {Error, Result};
+
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use chrono::{DateTime, Duration, TimeZone, Utc};
+use information_element::{InformationElement, InformationElementType};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Cursor, Read, Write};
-use std::str;
 use std::path::Path;
-
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use chrono::{DateTime, Duration, TimeZone, Utc};
-
-use {Error, Result};
-use information_element::{InformationElement, InformationElementType};
+use std::str;
 
 const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
 const MOBILE_ORIGINATED_HEADER_LENGTH: u16 = 28;
@@ -57,7 +57,7 @@ impl Imei {
 /// The status of a mobile-originated session.
 ///
 /// The descriptions for these codes are taken directly from the `DirectIP` documentation.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, RustcEncodable)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize)]
 pub enum SessionStatus {
     /// The SBD session completed successfully.
     Ok = 0,
@@ -157,7 +157,7 @@ impl Message {
     /// let message = Message::from_path("data/0-mo.sbd").unwrap();
     /// ```
     pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Message> {
-        let file = try!(File::open(path));
+        let file = File::open(path)?;
         Message::read_from(file)
     }
 
@@ -176,11 +176,11 @@ impl Message {
     pub fn read_from<R: Read>(mut readable: R) -> Result<Message> {
         let mut message: Message = Default::default();
 
-        message.protocol_revision_number = ProtocolRevisionNumber(try!(readable.read_u8()));
+        message.protocol_revision_number = ProtocolRevisionNumber(readable.read_u8()?);
         if !message.protocol_revision_number.valid() {
             return Err(Error::InvalidProtocolRevisionNumber(message.protocol_revision_number.0));
         }
-        let overall_message_length = try!(readable.read_u16::<BigEndian>());
+        let overall_message_length = readable.read_u16::<BigEndian>()?;
 
         let mut information_elements: HashMap<InformationElementType, InformationElement> =
             HashMap::new();
@@ -197,7 +197,7 @@ impl Message {
             }
         }
 
-        if try!(readable.take(1).read_to_end(&mut Vec::new())) != 0 {
+        if readable.take(1).read_to_end(&mut Vec::new())? != 0 {
             return Err(Error::Oversized);
         }
 
@@ -207,16 +207,16 @@ impl Message {
                 None => return Err(Error::MissingMobileOriginatedHeader),
             };
         let mut cursor = &mut Cursor::new(header.contents_ref());
-        message.cdr_reference = try!(cursor.read_u32::<BigEndian>());
-        let bytes_read = try!(cursor.take(message.imei.0.len() as u64).read(&mut message.imei.0));
+        message.cdr_reference = cursor.read_u32::<BigEndian>()?;
+        let bytes_read = cursor.take(message.imei.0.len() as u64).read(&mut message.imei.0)?;
         if bytes_read != message.imei.0.len() {
             return Err(Error::InvalidImei);
         }
-        message.session_status = SessionStatus::from(try!(cursor.read_u8()));
-        message.momsn = try!(cursor.read_u16::<BigEndian>());
-        message.mtmsn = try!(cursor.read_u16::<BigEndian>());
+        message.session_status = SessionStatus::from(cursor.read_u8()?);
+        message.momsn = cursor.read_u16::<BigEndian>()?;
+        message.mtmsn = cursor.read_u16::<BigEndian>()?;
         message.time_of_session = Utc.ymd(1970, 1, 1).and_hms(0, 0, 0) +
-                                  Duration::seconds(try!(cursor.read_u32::<BigEndian>()) as i64);
+                                  Duration::seconds(cursor.read_u32::<BigEndian>()? as i64);
 
         let payload =
             match information_elements.remove(&InformationElementType::MobileOriginatedPayload) {
@@ -244,20 +244,20 @@ impl Message {
     /// message.write_to(&mut cursor);
     /// ```
     pub fn write_to<W: Write>(&self, w: &mut W) -> Result<()> {
-        try!(w.write_u8(self.protocol_revision_number.0));
-        try!(w.write_u16::<BigEndian>(self.overall_message_length()));
-        try!(w.write_u8(InformationElementType::MobileOriginatedHeader as u8));
-        try!(w.write_u16::<BigEndian>(MOBILE_ORIGINATED_HEADER_LENGTH));
-        try!(w.write_u32::<BigEndian>(self.cdr_reference));
-        try!(w.write_all(&self.imei.0));
-        try!(w.write_u8(self.session_status as u8));
-        try!(w.write_u16::<BigEndian>(self.momsn));
-        try!(w.write_u16::<BigEndian>(self.mtmsn));
-        try!(w.write_u32::<BigEndian>(self.time_of_session.timestamp() as u32));
-        try!(w.write_u8(InformationElementType::MobileOriginatedPayload as u8));
+        w.write_u8(self.protocol_revision_number.0)?;
+        w.write_u16::<BigEndian>(self.overall_message_length())?;
+        w.write_u8(InformationElementType::MobileOriginatedHeader as u8)?;
+        w.write_u16::<BigEndian>(MOBILE_ORIGINATED_HEADER_LENGTH)?;
+        w.write_u32::<BigEndian>(self.cdr_reference)?;
+        w.write_all(&self.imei.0)?;
+        w.write_u8(self.session_status as u8)?;
+        w.write_u16::<BigEndian>(self.momsn)?;
+        w.write_u16::<BigEndian>(self.mtmsn)?;
+        w.write_u32::<BigEndian>(self.time_of_session.timestamp() as u32)?;
+        w.write_u8(InformationElementType::MobileOriginatedPayload as u8)?;
         // TODO can we check to make sure the payload is of appropriate size?
-        try!(w.write_u16::<BigEndian>(self.payload.len() as u16));
-        try!(w.write_all(&self.payload[..]));
+        w.write_u16::<BigEndian>(self.payload.len() as u16)?;
+        w.write_all(&self.payload[..])?;
         Ok(())
     }
 
@@ -312,11 +312,11 @@ impl Message {
 mod tests {
     use super::*;
 
+    use chrono::{TimeZone, Utc};
+
     use std::fs::File;
     use std::io::{Cursor, Read};
     use std::str;
-
-    use chrono::{TimeZone, Utc};
 
     #[test]
     fn from_path() {

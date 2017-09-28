@@ -1,13 +1,13 @@
 //! Store SBD messages on the filesystem.
 
+
+use {Error, Result};
+use mo::Message;
 use std::fs;
 use std::path::{Path, PathBuf};
+use storage;
 
 use walkdir;
-
-use {Result, Error};
-use mo::Message;
-use storage;
 
 const SBD_EXTENSION: &'static str = "sbd";
 
@@ -36,7 +36,7 @@ impl Storage {
     /// assert!(FilesystemStorage::open("not/a/directory").is_err());
     /// ```
     pub fn open<P: AsRef<Path>>(root: P) -> Result<Storage> {
-        let metadata = try!(fs::metadata(root.as_ref()));
+        let metadata = fs::metadata(root.as_ref())?;
         if !metadata.is_dir() {
             Err(Error::NotADirectory(root.as_ref().as_os_str().to_os_string()))
         } else {
@@ -65,12 +65,12 @@ impl storage::Storage for Storage {
         path_buf.push(message.imei());
         path_buf.push(message.time_of_session().format("%Y").to_string());
         path_buf.push(message.time_of_session().format("%m").to_string());
-        try!(fs::create_dir_all(&path_buf));
+        fs::create_dir_all(&path_buf)?;
         path_buf.push(message.time_of_session()
-            .format(&format!("%y%m%d_%H%M%S.{}", SBD_EXTENSION))
-            .to_string());
-        let mut file = try!(fs::File::create(&path_buf));
-        try!(message.write_to(&mut file));
+                          .format(&format!("%y%m%d_%H%M%S.{}", SBD_EXTENSION))
+                          .to_string());
+        let mut file = fs::File::create(&path_buf)?;
+        message.write_to(&mut file)?;
         Ok(())
     }
 

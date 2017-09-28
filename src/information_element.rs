@@ -3,11 +3,11 @@
 //! Information elements come after the SBD header. They come in many types,
 //! including more header-type information and the actual data payload.
 
-use std::io::Read;
-
-use byteorder::{ReadBytesExt, BigEndian};
 
 use {Error, Result};
+
+use byteorder::{BigEndian, ReadBytesExt};
+use std::io::Read;
 
 const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
 
@@ -59,10 +59,10 @@ impl InformationElement {
     /// Reads an information element from something that implements `Read`.
     pub fn read_from<R: Read>(mut readable: R) -> Result<InformationElement> {
         let mut information_element: InformationElement = Default::default();
-        information_element.id = InformationElementType::from(try!(readable.read_u8()));
-        information_element.length = try!(readable.read_u16::<BigEndian>());
-        let bytes_read = try!(readable.take(information_element.length as u64)
-            .read_to_end(&mut information_element.contents));
+        information_element.id = InformationElementType::from(readable.read_u8()?);
+        information_element.length = readable.read_u16::<BigEndian>()?;
+        let bytes_read = readable.take(information_element.length as u64)
+            .read_to_end(&mut information_element.contents)?;
         assert!(!(bytes_read > information_element.length as usize));
         if bytes_read < information_element.length as usize {
             return Err(Error::Undersized(bytes_read + 3));
@@ -95,9 +95,9 @@ impl InformationElement {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::File;
 
     use std::io::{Read, Seek, SeekFrom};
-    use std::fs::File;
 
     #[test]
     fn read_from() {

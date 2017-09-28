@@ -9,13 +9,13 @@
 //! This module provides a `Server` structure, which can be created to run
 //! forever and receive those incoming MO messages.
 
+use mo::Message;
 use std::io;
 use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
 use storage::Storage;
-use mo::Message;
 
 /// A Iridium `DirectIP` server.
 ///
@@ -67,7 +67,7 @@ impl<A, S> Server<A, S>
     /// server.bind().unwrap();
     /// ```
     pub fn bind(&mut self) -> io::Result<()> {
-        self.listener = Some(try!(self.create_listener()));
+        self.listener = Some(self.create_listener()?);
         Ok(())
     }
 

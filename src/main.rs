@@ -3,20 +3,19 @@
 extern crate chrono;
 extern crate docopt;
 extern crate log;
-extern crate rustc_serialize;
 extern crate sbd;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
 
+use docopt::Docopt;
+use sbd::directip::Server;
+use sbd::mo::{Message, SessionStatus};
+use sbd::storage::FilesystemStorage;
 use std::io::Write;
 use std::path::Path;
 use std::process;
 use std::str;
-
-use docopt::Docopt;
-use rustc_serialize::json;
-
-use sbd::directip::Server;
-use sbd::storage::FilesystemStorage;
-use sbd::mo::{Message, SessionStatus};
 
 const USAGE: &'static str = "
 Iridium Short Burst Data (SBD) message utility.
@@ -35,7 +34,7 @@ Options:
     --compact               Don't pretty-print the JSON
 ";
 
-#[derive(Debug, RustcDecodable)]
+#[derive(Debug, Deserialize)]
 struct Args {
     cmd_info: bool,
     cmd_payload: bool,
@@ -49,6 +48,18 @@ struct Args {
 
 struct Logger<P: AsRef<Path>> {
     path: P,
+}
+
+#[derive(Debug, Serialize)]
+struct ReadableMessage {
+    protocol_revision_number: u8,
+    cdr_reference: u32,
+    imei: String,
+    session_status: SessionStatus,
+    momsn: u16,
+    mtmsn: u16,
+    time_of_session: String,
+    payload: String,
 }
 
 impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
@@ -74,18 +85,6 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
     }
 }
 
-#[derive(RustcEncodable)]
-pub struct ReadableMessage {
-    protocol_revision_number: u8,
-    cdr_reference: u32,
-    imei: String,
-    session_status: SessionStatus,
-    momsn: u16,
-    mtmsn: u16,
-    time_of_session: String,
-    payload: String,
-}
-
 impl ReadableMessage {
     fn new(m: &Message) -> ReadableMessage {
         ReadableMessage {
@@ -104,7 +103,7 @@ impl ReadableMessage {
 fn main() {
     let args: Args = Docopt::new(USAGE)
         .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
-        .and_then(|d| d.decode())
+        .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
 
     if args.cmd_info {
@@ -112,9 +111,9 @@ fn main() {
             Ok(ref message) => {
                 let message = &ReadableMessage::new(message);
                 if args.flag_compact {
-                    println!("{}", json::as_json(message));
+                    println!("{}", serde_json::to_string(message).unwrap());
                 } else {
-                    println!("{}", json::as_pretty_json(message));
+                    println!("{}", serde_json::to_string_pretty(message).unwrap());
                 };
             }
             Err(err) => {

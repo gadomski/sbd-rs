@@ -1,20 +1,15 @@
 //! Error module.
 
+use information_element::{InformationElement, InformationElementType};
 use std;
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fmt;
-
-use byteorder;
 use walkdir;
-
-use information_element::{InformationElementType, InformationElement};
 
 /// Crate-specific errors
 #[derive(Debug)]
 pub enum Error {
-    /// An error while reading bytes from a stream with the byteorder crate.
-    Byteorder(byteorder::Error),
     /// A wrapper around a `std::io::Error`.
     Io(std::io::Error),
     /// Invalid IMEI number.
@@ -46,7 +41,6 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Error::Byteorder(ref err) => write!(f, "Byteorder error: {}", err),
             Error::Io(ref err) => write!(f, "IO error: {}", err),
             Error::InvalidImei => write!(f, "Invalid IMEI number"),
             Error::InvalidProtocolRevisionNumber(number) => {
@@ -73,7 +67,6 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::Byteorder(ref err) => err.description(),
             Error::Io(ref err) => err.description(),
             Error::InvalidImei => "invalid IMEI number",
             Error::InvalidProtocolRevisionNumber(_) => "invalid protocol revision number",
@@ -90,18 +83,11 @@ impl std::error::Error for Error {
 
     fn cause(&self) -> Option<&std::error::Error> {
         match *self {
-            Error::Byteorder(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
             Error::Utf8(ref err) => Some(err),
             Error::WalkDir(ref err) => Some(err),
             _ => None,
         }
-    }
-}
-
-impl From<byteorder::Error> for Error {
-    fn from(err: byteorder::Error) -> Error {
-        Error::Byteorder(err)
     }
 }
 
