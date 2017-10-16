@@ -208,7 +208,7 @@ impl Message {
                 Some(ie) => ie,
                 None => return Err(Error::MissingMobileOriginatedHeader),
             };
-        let mut cursor = &mut Cursor::new(header.contents_ref());
+        let cursor = &mut Cursor::new(header.contents_ref());
         message.cdr_reference = cursor.read_u32::<BigEndian>()?;
         let bytes_read = cursor.take(message.imei.0.len() as u64).read(
             &mut message.imei.0,
