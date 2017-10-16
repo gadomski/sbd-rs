@@ -38,7 +38,9 @@ impl Storage {
     pub fn open<P: AsRef<Path>>(root: P) -> Result<Storage> {
         let metadata = fs::metadata(root.as_ref())?;
         if !metadata.is_dir() {
-            Err(Error::NotADirectory(root.as_ref().as_os_str().to_os_string()))
+            Err(Error::NotADirectory(
+                root.as_ref().as_os_str().to_os_string(),
+            ))
         } else {
             Ok(Storage { root: root.as_ref().to_path_buf() })
         }
@@ -66,9 +68,12 @@ impl storage::Storage for Storage {
         path_buf.push(message.time_of_session().format("%Y").to_string());
         path_buf.push(message.time_of_session().format("%m").to_string());
         fs::create_dir_all(&path_buf)?;
-        path_buf.push(message.time_of_session()
-                          .format(&format!("%y%m%d_%H%M%S.{}", SBD_EXTENSION))
-                          .to_string());
+        path_buf.push(
+            message
+                .time_of_session()
+                .format(&format!("%y%m%d_%H%M%S.{}", SBD_EXTENSION))
+                .to_string(),
+        );
         let mut file = fs::File::create(&path_buf)?;
         message.write_to(&mut file)?;
         Ok(())
@@ -113,11 +118,17 @@ impl Iterator for StorageIterator {
             .by_ref()
             .skip_while(|r| {
                 r.as_ref()
-                    .map(|d| d.path().extension().map_or(true, |e| e != SBD_EXTENSION))
+                    .map(|d| {
+                        d.path().extension().map_or(true, |e| e != SBD_EXTENSION)
+                    })
                     .unwrap_or(true)
             })
             .next()
-            .map(|r| r.map_err(Error::from).and_then(|d| Message::from_path(d.path())))
+            .map(|r| {
+                r.map_err(Error::from).and_then(
+                    |d| Message::from_path(d.path()),
+                )
+            })
     }
 }
 

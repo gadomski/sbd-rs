@@ -30,8 +30,9 @@ pub struct Server<A: ToSocketAddrs + Sync, S: Storage + Sync + Send> {
 }
 
 impl<A, S> Server<A, S>
-    where A: ToSocketAddrs + Sync,
-          S: 'static + Storage + Sync + Send
+where
+    A: ToSocketAddrs + Sync,
+    S: 'static + Storage + Sync + Send,
 {
     /// Creates a new server that will listen on `addr` and write messages to `storage`.
     ///
@@ -119,16 +120,20 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
             debug!("Handling TcpStream from {}", addr);
         }
         Err(err) => {
-            warn!("Problem when extracting peer address from TcpStream, but we'll press on: {:?}",
-                  err);
+            warn!(
+                "Problem when extracting peer address from TcpStream, but we'll press on: {:?}",
+                err
+            );
         }
     }
     let message = match Message::read_from(stream) {
         Ok(message) => {
-            info!("Recieved message from IMEI {} with MOMN {} and {} byte payload",
-                  message.imei(),
-                  message.momsn(),
-                  message.payload_ref().len());
+            info!(
+                "Recieved message from IMEI {} with MOMN {} and {} byte payload",
+                message.imei(),
+                message.momsn(),
+                message.payload_ref().len()
+            );
             message
         }
         Err(err) => {
@@ -136,7 +141,10 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
             return;
         }
     };
-    match storage.lock().expect("unable to lock storage mutex").store(message) {
+    match storage
+        .lock()
+        .expect("unable to lock storage mutex")
+        .store(message) {
         Ok(_) => info!("Stored message"),
         Err(err) => error!("Problem storing message: {:?}", err),
     }

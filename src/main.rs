@@ -75,12 +75,14 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
                 .append(true)
                 .open(&self.path)
                 .unwrap();
-            file.write_all(format!("({}) {}: {}\n",
-                                   chrono::Utc::now().format("%Y-%m-%d %H:%M:%S"),
-                                   record.level(),
-                                   record.args())
-                                   .as_bytes())
-                .unwrap();
+            file.write_all(
+                format!(
+                    "({}) {}: {}\n",
+                    chrono::Utc::now().format("%Y-%m-%d %H:%M:%S"),
+                    record.level(),
+                    record.args()
+                ).as_bytes(),
+            ).unwrap();
         }
     }
 }
@@ -95,14 +97,18 @@ impl ReadableMessage {
             momsn: m.momsn(),
             mtmsn: m.mtmsn(),
             time_of_session: m.time_of_session().to_rfc2822(),
-            payload: str::from_utf8(m.payload_ref()).unwrap_or("<binary payload>").to_string(),
+            payload: str::from_utf8(m.payload_ref())
+                .unwrap_or("<binary payload>")
+                .to_string(),
         }
     }
 }
 
 fn main() {
     let args: Args = Docopt::new(USAGE)
-        .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
+        .and_then(|d| {
+            Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string())))
+        })
         .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
 
@@ -125,11 +131,13 @@ fn main() {
     if args.cmd_payload {
         match Message::from_path(&args.arg_file) {
             Ok(message) => {
-                print!("{}",
-                         str::from_utf8(message.payload_ref()).unwrap_or_else(|e| {
-                             println!("ERROR: Unable to convert payload to utf8: {}", e);
-                             process::exit(1);
-                         }));
+                print!(
+                    "{}",
+                    str::from_utf8(message.payload_ref()).unwrap_or_else(|e| {
+                        println!("ERROR: Unable to convert payload to utf8: {}", e);
+                        process::exit(1);
+                    })
+                );
             }
             Err(err) => {
                 println!("ERROR: Unable to extract payload: {}", err);
@@ -139,13 +147,12 @@ fn main() {
     }
     if args.cmd_serve {
         log::set_logger(|max_log_level| {
-                            max_log_level.set(log::LogLevelFilter::Debug);
-                            Box::new(Logger { path: args.flag_logfile.clone() })
-                        })
-                .unwrap_or_else(|e| {
-                                    println!("ERROR: Could not create logger: {}", e);
-                                    process::exit(1);
-                                });
+            max_log_level.set(log::LogLevelFilter::Debug);
+            Box::new(Logger { path: args.flag_logfile.clone() })
+        }).unwrap_or_else(|e| {
+            println!("ERROR: Could not create logger: {}", e);
+            process::exit(1);
+        });
         let storage = FilesystemStorage::open(args.arg_directory).unwrap_or_else(|e| {
             println!("ERROR: Could not open storage: {}", e);
             process::exit(1);

@@ -178,7 +178,9 @@ impl Message {
 
         message.protocol_revision_number = ProtocolRevisionNumber(readable.read_u8()?);
         if !message.protocol_revision_number.valid() {
-            return Err(Error::InvalidProtocolRevisionNumber(message.protocol_revision_number.0));
+            return Err(Error::InvalidProtocolRevisionNumber(
+                message.protocol_revision_number.0,
+            ));
         }
         let overall_message_length = readable.read_u16::<BigEndian>()?;
 
@@ -208,7 +210,9 @@ impl Message {
             };
         let mut cursor = &mut Cursor::new(header.contents_ref());
         message.cdr_reference = cursor.read_u32::<BigEndian>()?;
-        let bytes_read = cursor.take(message.imei.0.len() as u64).read(&mut message.imei.0)?;
+        let bytes_read = cursor.take(message.imei.0.len() as u64).read(
+            &mut message.imei.0,
+        )?;
         if bytes_read != message.imei.0.len() {
             return Err(Error::InvalidImei);
         }
@@ -216,7 +220,7 @@ impl Message {
         message.momsn = cursor.read_u16::<BigEndian>()?;
         message.mtmsn = cursor.read_u16::<BigEndian>()?;
         message.time_of_session = Utc.ymd(1970, 1, 1).and_hms(0, 0, 0) +
-                                  Duration::seconds(cursor.read_u32::<BigEndian>()? as i64);
+            Duration::seconds(cursor.read_u32::<BigEndian>()? as i64);
 
         let payload =
             match information_elements.remove(&InformationElementType::MobileOriginatedPayload) {
@@ -246,15 +250,21 @@ impl Message {
     pub fn write_to<W: Write>(&self, w: &mut W) -> Result<()> {
         w.write_u8(self.protocol_revision_number.0)?;
         w.write_u16::<BigEndian>(self.overall_message_length())?;
-        w.write_u8(InformationElementType::MobileOriginatedHeader as u8)?;
+        w.write_u8(
+            InformationElementType::MobileOriginatedHeader as u8,
+        )?;
         w.write_u16::<BigEndian>(MOBILE_ORIGINATED_HEADER_LENGTH)?;
         w.write_u32::<BigEndian>(self.cdr_reference)?;
         w.write_all(&self.imei.0)?;
         w.write_u8(self.session_status as u8)?;
         w.write_u16::<BigEndian>(self.momsn)?;
         w.write_u16::<BigEndian>(self.mtmsn)?;
-        w.write_u32::<BigEndian>(self.time_of_session.timestamp() as u32)?;
-        w.write_u8(InformationElementType::MobileOriginatedPayload as u8)?;
+        w.write_u32::<BigEndian>(
+            self.time_of_session.timestamp() as u32,
+        )?;
+        w.write_u8(
+            InformationElementType::MobileOriginatedPayload as u8,
+        )?;
         // TODO can we check to make sure the payload is of appropriate size?
         w.write_u16::<BigEndian>(self.payload.len() as u16)?;
         w.write_all(&self.payload[..])?;
@@ -304,7 +314,7 @@ impl Message {
     /// header itself.
     fn overall_message_length(&self) -> u16 {
         INFORMATION_ELEMENT_HEADER_LENGTH + MOBILE_ORIGINATED_HEADER_LENGTH +
-        INFORMATION_ELEMENT_HEADER_LENGTH + self.payload.len() as u16
+            INFORMATION_ELEMENT_HEADER_LENGTH + self.payload.len() as u16
     }
 }
 
@@ -362,10 +372,14 @@ mod tests {
         assert_eq!(SessionStatus::Ok, message.session_status());
         assert_eq!(75, message.momsn());
         assert_eq!(0, message.mtmsn());
-        assert_eq!(Utc.ymd(2015, 7, 9).and_hms(18, 15, 8),
-                   message.time_of_session());
-        assert_eq!("test message from pete",
-                   str::from_utf8(message.payload_ref()).unwrap());
+        assert_eq!(
+            Utc.ymd(2015, 7, 9).and_hms(18, 15, 8),
+            message.time_of_session()
+        );
+        assert_eq!(
+            "test message from pete",
+            str::from_utf8(message.payload_ref()).unwrap()
+        );
     }
 
     #[test]

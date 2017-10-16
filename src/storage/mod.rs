@@ -59,8 +59,8 @@ pub trait Storage {
     /// ```
     fn messages_from_imei(&self, imei: &str) -> Result<Vec<Message>> {
         self.messages().map(|mut v| {
-                                v.retain(|m| m.imei() == imei);
-                                v
-                            })
+            v.retain(|m| m.imei() == imei);
+            v
+        })
     }
 }

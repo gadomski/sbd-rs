@@ -49,9 +49,13 @@ impl fmt::Display for Error {
             Error::MissingMobileOriginatedHeader => write!(f, "Missing mobile origianted header"),
             Error::MissingMobileOriginatedPayload => write!(f, "Missing mobile orignated payload"),
             Error::NotADirectory(ref path) => {
-                write!(f,
-                       "Not a directory: {}",
-                       path.clone().into_string().unwrap_or("<undisplayable path>".to_string()))
+                write!(
+                    f,
+                    "Not a directory: {}",
+                    path.clone().into_string().unwrap_or(
+                        "<undisplayable path>".to_string(),
+                    )
+                )
             }
             Error::Oversized => write!(f, "Oversized message"),
             Error::Undersized(size) => write!(f, "Undersized message: {}", size),
