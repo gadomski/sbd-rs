@@ -14,12 +14,21 @@ const INFORMATION_ELEMENT_HEADER_LENGTH: u16 = 3;
 /// Enum to name the information element ids.
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum InformationElementType {
+    /// The header of the mobile originated message.
     MobileOriginatedHeader = 0x01,
+    /// The actual mobile originated payload.
     MobileOriginatedPayload = 0x02,
+    /// An estimate of the originating IMEI's location.
+    ///
+    /// An optional IE.
     MobileOriginatedLocationInformation = 0x03,
+    /// The header of the mobile terminated message.
     MobileTerminatedHeader = 0x41,
+    /// The actual mobile termianted payload.
     MobileTerminatedPayload = 0x42,
+    /// A confirmation message.
     MobileTerminatedConfirmationMessage = 0x44,
+    /// An unknown IMEI.
     Unknown,
 }
 
