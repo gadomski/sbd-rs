@@ -26,5 +26,4 @@ travis-ci = { repository = "gadomski/sbd-rs" }
 
 [[bin]]
 name = "sbd"
-test = false
 doc = false
