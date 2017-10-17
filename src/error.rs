@@ -17,11 +17,6 @@ quick_error! {
             description(err.description())
             display("io error: {}", err)
         }
-        /// Invalid IMEI number.
-        InvalidImei {
-            description("invalid imei number")
-            display("invalid imei number")
-        }
         /// Invalid protocol revision number.
         InvalidProtocolRevisionNumber(n: u8) {
             description("invalid protocol revision number")

@@ -210,12 +210,7 @@ impl Message {
             };
         let cursor = &mut Cursor::new(header.contents_ref());
         message.cdr_reference = cursor.read_u32::<BigEndian>()?;
-        let bytes_read = cursor.take(message.imei.0.len() as u64).read(
-            &mut message.imei.0,
-        )?;
-        if bytes_read != message.imei.0.len() {
-            return Err(Error::InvalidImei);
-        }
+        cursor.read_exact(&mut message.imei.0)?;
         message.session_status = SessionStatus::from(cursor.read_u8()?);
         message.momsn = cursor.read_u16::<BigEndian>()?;
         message.mtmsn = cursor.read_u16::<BigEndian>()?;
