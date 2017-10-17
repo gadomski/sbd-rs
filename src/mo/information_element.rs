@@ -44,7 +44,7 @@ impl InformationElement {
                 let momsn = read.read_u16::<BigEndian>()?;
                 let mtmsn = read.read_u16::<BigEndian>()?;
                 let time_of_session = read.read_u32::<BigEndian>().map_err(Error::from).map(|n| {
-                    Utc.timestamp(n as i64, 0)
+                    Utc.timestamp(i64::from(n), 0)
                 })?;
                 Ok(InformationElement::Header(Header {
                     auto_id: auto_id,
@@ -76,6 +76,16 @@ impl InformationElement {
             InformationElement::Header(_) => 31,
             InformationElement::Payload(ref payload) => 3 + payload.len(),
             InformationElement::LocationInformation(_) => 10,
+        }
+    }
+
+    /// Returns true if this information element is empty.
+    ///
+    /// At this point, only can be true if the payload is empty.
+    pub fn is_empty(&self) -> bool {
+        match *self {
+            InformationElement::Payload(ref payload) => payload.is_empty(),
+            _ => false,
         }
     }
 

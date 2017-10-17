@@ -61,7 +61,7 @@ impl Message {
 
         let mut cursor = Cursor::new(message);
         let mut information_elements = Vec::new();
-        while cursor.position() < overall_message_length as u64 {
+        while cursor.position() < u64::from(overall_message_length) {
             information_elements.push(InformationElement::read_from(&mut cursor)?);
         }
 
@@ -98,17 +98,17 @@ impl Message {
         let mut information_elements = Vec::new();
         for information_element in iter {
             match information_element {
-                InformationElement::Header(h) => if let Some(_) = header {
+                InformationElement::Header(h) => if header.is_some() {
                     return Err(Error::TwoHeaders);
                 } else {
                     header = Some(h);
                 }
-                InformationElement::Payload(p) => if let Some(_) = payload {
+                InformationElement::Payload(p) => if payload.is_some() {
                     return Err(Error::TwoPayloads);
                 } else {
                     payload = Some(p);
                 }
-                ie @ _ => information_elements.push(ie)
+                ie => information_elements.push(ie)
             }
         }
         Ok(Message {
