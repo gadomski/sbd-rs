@@ -88,19 +88,8 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
 }
 
 impl ReadableMessage {
-    fn new(m: &Message) -> ReadableMessage {
-        ReadableMessage {
-            protocol_revision_number: m.protocol_revision_number(),
-            cdr_reference: m.cdr_reference(),
-            imei: m.imei().to_string(),
-            session_status: m.session_status(),
-            momsn: m.momsn(),
-            mtmsn: m.mtmsn(),
-            time_of_session: m.time_of_session().to_rfc2822(),
-            payload: str::from_utf8(m.payload_ref())
-                .unwrap_or("<binary payload>")
-                .to_string(),
-        }
+    fn new(_: &Message) -> ReadableMessage {
+        unimplemented!()
     }
 }
 
@@ -129,21 +118,7 @@ fn main() {
         }
     }
     if args.cmd_payload {
-        match Message::from_path(&args.arg_file) {
-            Ok(message) => {
-                print!(
-                    "{}",
-                    str::from_utf8(message.payload_ref()).unwrap_or_else(|e| {
-                        println!("ERROR: Unable to convert payload to utf8: {}", e);
-                        process::exit(1);
-                    })
-                );
-            }
-            Err(err) => {
-                println!("ERROR: Unable to extract payload: {}", err);
-                process::exit(1);
-            }
-        }
+        unimplemented!()
     }
     if args.cmd_serve {
         log::set_logger(|max_log_level| {

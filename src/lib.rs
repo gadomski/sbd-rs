@@ -43,6 +43,7 @@
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
         trivial_numeric_casts, unsafe_code, unstable_features, unused_extern_crates,
         unused_import_braces, unused_qualifications)]
+#![recursion_limit="128"]
 
 extern crate byteorder;
 extern crate chrono;
@@ -55,7 +56,6 @@ extern crate serde_derive;
 extern crate walkdir;
 
 pub mod directip;
-pub mod information_element;
 pub mod mo;
 pub mod storage;
 
@@ -78,15 +78,23 @@ quick_error! {
             description("invalid protocol revision number")
             display("invalid protocol revision number: {}", n)
         }
-        /// Missing mobile originated header.
-        MissingMobileOriginatedHeader {
-            description("the mobile originated header is missing")
-            display("the mobile originated header is missing")
+        /// Invalid information element identifier.
+        InvalidInformationElementIdentifier(n: u8) {
+            description("invalid information element identifier")
+            display("invalid information element identifier: {}", n)
         }
-        /// Missing mobile originated payload.
-        MissingMobileOriginatedPayload {
-            description("the mobile originated payload is missing")
-            display("the mobile originated payload is missing")
+        /// The timestamp is negative, but only positive ones are supported.
+        NegativeTimestamp(timestamp: i64) {
+            description("only positive timestamps are allowed in mo messages")
+            display("negative timestamp: {}", timestamp)
+        }
+        /// No header on a MO message.
+        NoHeader {
+            description("no header on a mo message")
+        }
+        /// No payload on a MO message.
+        NoPayload {
+            description("no payload on a mo message")
         }
         /// We expected a directory, but this isn't one.
         ///
@@ -95,25 +103,23 @@ quick_error! {
             description("the os string is not a directory")
             display("this os string is not a directory: {}", s.to_string_lossy())
         }
-        /// An oversized message.
-        ///
-        /// Oversized doesn't demand a size since we don't want to find out how much there really
-        /// is.
-        Oversized {
-            description("the message is oversized")
-            display("the message is oversized")
+        /// The overall message length is too long.
+        OverallMessageLength(len: usize) {
+            description("the overall message length is too long")
+            display("the overall message length is too long: {}", len)
         }
-        /// An undersized message.
-        Undersized(size: usize) {
-            description("the message is undersized")
-            display("the message is undersized: {}", size)
+        /// The payload is too long.
+        PayloadTooLong(len: usize) {
+            description("the mo payload is too long")
+            display("the payload is too long: {}", len)
         }
-        /// Some information elements weren't handled during reading.
-        ///
-        /// This is bad, because we might not write those IEs back out.
-        UnhandledInformationElements(ies: std::collections::HashMap<information_element::InformationElementType, information_element::InformationElement>) {
-            description("some information elements are unhandled")
-            display("did not handle these information elements: {:?}", ies)
+        /// Two headers in an MO message.
+        TwoHeaders {
+            description("two headers in a MO message")
+        }
+        /// Two payloads in an MO message.
+        TwoPayloads {
+            description("two payloads in a MO message")
         }
         /// Wrapper around `std::str::Utf8Error`.
         Utf8(err: std::str::Utf8Error) {
@@ -121,6 +127,11 @@ quick_error! {
             cause(err)
             description(err.description())
             display("utf8 error: {}", err)
+        }
+        /// The session status is unknown.
+        UnknownSessionStatus(n: u8) {
+            description("unknown session status")
+            display("uknown session status code: {}", n)
         }
         /// Wrapper around `walkdir::Error`.
         WalkDir(err: walkdir::Error) {

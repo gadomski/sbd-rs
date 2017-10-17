@@ -132,7 +132,7 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
                 "Recieved message from IMEI {} with MOMN {} and {} byte payload",
                 message.imei(),
                 message.momsn(),
-                message.payload_ref().len()
+                message.payload().len(),
             );
             message
         }
