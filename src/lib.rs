@@ -49,6 +49,8 @@ extern crate chrono;
 #[macro_use]
 extern crate log;
 #[macro_use]
+extern crate quick_error;
+#[macro_use]
 extern crate serde_derive;
 extern crate walkdir;
 
