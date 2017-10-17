@@ -215,7 +215,7 @@ impl Message {
         message.momsn = cursor.read_u16::<BigEndian>()?;
         message.mtmsn = cursor.read_u16::<BigEndian>()?;
         message.time_of_session = Utc.ymd(1970, 1, 1).and_hms(0, 0, 0) +
-            Duration::seconds(cursor.read_u32::<BigEndian>()? as i64);
+            Duration::seconds(i64::from(cursor.read_u32::<BigEndian>()?));
 
         let payload =
             match information_elements.remove(&InformationElementType::MobileOriginatedPayload) {

@@ -98,11 +98,11 @@ where
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
-                    let storage = self.storage.clone();
+                    let storage = Arc::clone(&self.storage);
                     thread::spawn(move || handle_stream(stream, storage));
                 }
                 Err(err) => {
-                    thread::spawn(move || handle_error(err));
+                    thread::spawn(move || handle_error(&err));
                 }
             }
         }
@@ -151,6 +151,6 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
 }
 
 /// Handles an error when handling a connection.
-fn handle_error(err: io::Error) {
+fn handle_error(err: &io::Error) {
     error!("Error when receiving tcp communication: {:?}", err);
 }
