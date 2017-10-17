@@ -3,9 +3,7 @@
 //! Though messages technically come in two flavors, mobile originated and mobile terminated, we
 //! only handle mobile originated messages in this library.
 
-
 use {Error, Result};
-
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use information_element::{InformationElement, InformationElementType};

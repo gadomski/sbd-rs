@@ -39,7 +39,8 @@ quick_error! {
         }
         /// An oversized message.
         ///
-        /// Oversized doesn't demand a size since we don't want to find out how much there really is.
+        /// Oversized doesn't demand a size since we don't want to find out how much there really
+        /// is.
         Oversized {
             description("the message is oversized")
             display("the message is oversized")
