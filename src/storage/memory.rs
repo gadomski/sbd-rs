@@ -2,7 +2,6 @@
 //!
 //! Useful primarily for testing.
 
-use Result;
 use mo::Message;
 use storage;
 
@@ -21,17 +20,19 @@ impl Storage {
     /// let storage = sbd::storage::MemoryStorage::new();
     /// ```
     pub fn new() -> Storage {
-        Storage { messages: Vec::new() }
+        Storage {
+            messages: Vec::new(),
+        }
     }
 }
 
 impl storage::Storage for Storage {
-    fn store(&mut self, message: Message) -> Result<()> {
+    fn store(&mut self, message: Message) -> Result<(), ::failure::Error> {
         self.messages.push(message);
         Ok(())
     }
 
-    fn messages(&self) -> Result<Vec<Message>> {
+    fn messages(&self) -> Result<Vec<Message>, ::failure::Error> {
         Ok(self.messages.clone())
     }
 }

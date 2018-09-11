@@ -1,5 +1,3 @@
-use Result;
-
 /// The status of a mobile-originated session.
 ///
 /// The descriptions for these codes are taken directly from the `DirectIP` documentation.
@@ -27,6 +25,11 @@ pub enum SessionStatus {
     Prohibited = 15,
 }
 
+/// An unknown status message code.
+#[derive(Clone, Copy, Debug, Fail)]
+#[fail(display = "unknown session status: {}", _0)]
+pub struct UnknownSessionStatus(pub u8);
+
 impl SessionStatus {
     /// Creates a new session status from a code.
     ///
@@ -39,8 +42,7 @@ impl SessionStatus {
     /// assert!(SessionStatus::new(0).is_ok());
     /// assert!(SessionStatus::new(3).is_err());
     /// ```
-    pub fn new(n: u8) -> Result<SessionStatus> {
-        use Error;
+    pub fn new(n: u8) -> Result<SessionStatus, UnknownSessionStatus> {
         match n {
             0 => Ok(SessionStatus::Ok),
             1 => Ok(SessionStatus::OkMobileTerminatedTooLarge),
@@ -50,7 +52,7 @@ impl SessionStatus {
             13 => Ok(SessionStatus::RFLinkLoss),
             14 => Ok(SessionStatus::IMEIProtocolAnomaly),
             15 => Ok(SessionStatus::Prohibited),
-            _ => Err(Error::UnknownSessionStatus(n)),
+            _ => Err(UnknownSessionStatus(n)),
         }
     }
 }

@@ -1,11 +1,41 @@
-use Result;
 use chrono::{DateTime, Utc};
 use mo::{Header, InformationElement, SessionStatus};
 use std::cmp::Ordering;
 use std::io::{Read, Write};
 use std::path::Path;
 
-const PROTOCOL_REVISION_NUMBER: u8 = 1;
+/// The only valid protocol revision number.
+pub const PROTOCOL_REVISION_NUMBER: u8 = 1;
+
+/// Errors returned when creating a message.
+#[derive(Debug, Fail)]
+pub enum Error {
+    /// The message has an invalid protocol revision number.
+    #[fail(display = "invalid protocol revision number: {}", _0)]
+    InvalidProtocolRevisionNumber(u8),
+
+    /// There are two headers in the message.
+    #[fail(display = "two headers")]
+    TwoHeaders(Header, Header),
+
+    /// There are two payloads in the message.
+    #[fail(display = "two payloads")]
+    TwoPayloads(Vec<u8>, Vec<u8>),
+
+    /// There is no header in the message.
+    #[fail(display = "no header")]
+    NoHeader,
+
+    /// There is no payload in the message.
+    #[fail(display = "no payload")]
+    NoPayload,
+
+    /// The overall message length is too big.
+    #[fail(display = "the overall message length is too big: {}", _0)]
+    OverallMessageLength(usize),
+}
+
+/// Error returned when there is no
 
 /// A mobile-origined Iridium SBD message.
 ///
@@ -26,7 +56,7 @@ impl Message {
     /// use sbd::mo::Message;
     /// let message = Message::from_path("data/0-mo.sbd").unwrap();
     /// ```
-    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Message> {
+    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Message, ::failure::Error> {
         use std::fs::File;
         let file = File::open(path)?;
         Message::read_from(file)
@@ -44,16 +74,13 @@ impl Message {
     /// let mut file = File::open("data/0-mo.sbd").unwrap();
     /// let message = Message::read_from(file).unwrap();
     /// ```
-    pub fn read_from<R: Read>(mut read: R) -> Result<Message> {
-        use Error;
+    pub fn read_from<R: Read>(mut read: R) -> Result<Message, ::failure::Error> {
         use byteorder::{BigEndian, ReadBytesExt};
         use std::io::Cursor;
 
         let protocol_revision_number = read.read_u8()?;
         if protocol_revision_number != PROTOCOL_REVISION_NUMBER {
-            return Err(Error::InvalidProtocolRevisionNumber(
-                protocol_revision_number,
-            ));
+            return Err(Error::InvalidProtocolRevisionNumber(protocol_revision_number).into());
         }
         let overall_message_length = read.read_u16::<BigEndian>()?;
         let mut message = vec![0; overall_message_length as usize];
@@ -65,7 +92,7 @@ impl Message {
             information_elements.push(InformationElement::read_from(&mut cursor)?);
         }
 
-        Message::new(information_elements)
+        Message::new(information_elements).map_err(::failure::Error::from)
     }
 
     /// Creates a new message from information elements.
@@ -90,25 +117,23 @@ impl Message {
     /// let message = Message::new(vec![header, payload]);
     /// # }
     /// ```
-    pub fn new<I: IntoIterator<Item = InformationElement>>(iter: I) -> Result<Message> {
-        use Error;
-
+    pub fn new<I: IntoIterator<Item = InformationElement>>(iter: I) -> Result<Message, Error> {
         let mut header = None;
         let mut payload = None;
         let mut information_elements = Vec::new();
         for information_element in iter {
             match information_element {
-                InformationElement::Header(h) => if header.is_some() {
-                    return Err(Error::TwoHeaders);
+                InformationElement::Header(h) => if let Some(header) = header {
+                    return Err(Error::TwoHeaders(h, header));
                 } else {
                     header = Some(h);
-                }
-                InformationElement::Payload(p) => if payload.is_some() {
-                    return Err(Error::TwoPayloads);
+                },
+                InformationElement::Payload(p) => if let Some(payload) = payload {
+                    return Err(Error::TwoPayloads(p, payload));
                 } else {
                     payload = Some(p);
-                }
-                ie => information_elements.push(ie)
+                },
+                ie => information_elements.push(ie),
             }
         }
         Ok(Message {
@@ -226,16 +251,20 @@ impl Message {
     /// let mut cursor = Cursor::new(Vec::new());
     /// message.write_to(&mut cursor);
     /// ```
-    pub fn write_to<W: Write>(&self, mut write: W) -> Result<()> {
-        use byteorder::{WriteBytesExt, BigEndian};
+    pub fn write_to<W: Write>(&self, mut write: W) -> Result<(), ::failure::Error> {
+        use byteorder::{BigEndian, WriteBytesExt};
         use std::u16;
-        use Error;
 
         let header = InformationElement::from(self.header);
         let payload = InformationElement::from(self.payload.clone());
-        let overall_message_length = header.len() + payload.len() + self.information_elements.iter().map(|ie| ie.len()).sum::<usize>();
+        let overall_message_length = header.len() + payload.len()
+            + self
+                .information_elements
+                .iter()
+                .map(|ie| ie.len())
+                .sum::<usize>();
         if overall_message_length > u16::MAX as usize {
-            return Err(Error::OverallMessageLength(overall_message_length));
+            return Err(Error::OverallMessageLength(overall_message_length).into());
         }
 
         write.write_u8(PROTOCOL_REVISION_NUMBER)?;
@@ -353,7 +382,11 @@ mod tests {
 
     #[test]
     fn write() {
-        let message = Message::new(vec![header().into(), vec![1].into(), InformationElement::LocationInformation([0; 7])]).unwrap();
+        let message = Message::new(vec![
+            header().into(),
+            vec![1].into(),
+            InformationElement::LocationInformation([0; 7]),
+        ]).unwrap();
         let mut cursor = Cursor::new(Vec::new());
         message.write_to(&mut cursor).unwrap();
         cursor.set_position(0);
@@ -366,14 +399,8 @@ mod tests {
         let header1 = header();
         let mut header2 = header();
         header2.time_of_session = Utc.ymd(2010, 6, 11).and_hms(0, 0, 0);
-        let message1 = Message::new(vec![
-            header1.into(),
-            Vec::new().into(),
-        ]).unwrap();
-        let message2 = Message::new(vec![
-            header2.into(),
-            Vec::new().into(),
-        ]).unwrap();
+        let message1 = Message::new(vec![header1.into(), Vec::new().into()]).unwrap();
+        let message2 = Message::new(vec![header2.into(), Vec::new().into()]).unwrap();
         assert!(message2 < message1);
     }
 }

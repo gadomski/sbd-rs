@@ -1,8 +1,9 @@
 //! Store SBD messages on the filesystem.
 
-
-use {Error, Result};
+use failure::Error;
 use mo::Message;
+use std::ffi::OsString;
+use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
 use storage;
@@ -21,6 +22,25 @@ pub struct Storage {
     root: PathBuf,
 }
 
+/// An iterator over the messages in a `Storage`.
+///
+/// For now, this iterator will just return all messages with an `sbd` extension under the root of
+/// the storage tree. We could try to get smarter and mirror the pattern logic for saving, but for
+/// now that's more work and complexity than we need.
+///
+/// # Errors
+///
+/// This iterator's `Item` is a `sbd::Result<Message>`, because a file with an `sbd` extension
+/// might not convert to a message successfully.
+#[allow(missing_debug_implementations)]
+pub struct StorageIterator {
+    iter: walkdir::Iter,
+}
+
+/// An error returned when trying to create a storage for a non-directoy.
+#[derive(Debug, Fail)]
+pub struct NotADirectory(OsString);
+
 impl Storage {
     /// Opens a new storage for a given directory.
     ///
@@ -35,14 +55,14 @@ impl Storage {
     /// let storage = FilesystemStorage::open("data").unwrap();
     /// assert!(FilesystemStorage::open("not/a/directory").is_err());
     /// ```
-    pub fn open<P: AsRef<Path>>(root: P) -> Result<Storage> {
+    pub fn open<P: AsRef<Path>>(root: P) -> Result<Storage, ::failure::Error> {
         let metadata = fs::metadata(root.as_ref())?;
         if !metadata.is_dir() {
-            Err(Error::NotADirectory(
-                root.as_ref().as_os_str().to_os_string(),
-            ))
+            Err(NotADirectory(root.as_ref().as_os_str().to_os_string()).into())
         } else {
-            Ok(Storage { root: root.as_ref().to_path_buf() })
+            Ok(Storage {
+                root: root.as_ref().to_path_buf(),
+            })
         }
     }
 
@@ -62,7 +82,7 @@ impl Storage {
 }
 
 impl storage::Storage for Storage {
-    fn store(&mut self, message: Message) -> Result<()> {
+    fn store(&mut self, message: Message) -> Result<(), ::failure::Error> {
         let mut path_buf = self.root.clone();
         path_buf.push(message.imei());
         path_buf.push(message.time_of_session().format("%Y").to_string());
@@ -79,56 +99,46 @@ impl storage::Storage for Storage {
         Ok(())
     }
 
-    fn messages(&self) -> Result<Vec<Message>> {
+    fn messages(&self) -> Result<Vec<Message>, ::failure::Error> {
         self.iter().collect()
     }
 
-    fn messages_from_imei(&self, imei: &str) -> Result<Vec<Message>> {
+    fn messages_from_imei(&self, imei: &str) -> Result<Vec<Message>, ::failure::Error> {
         let mut path = self.root.clone();
         path.push(imei);
         StorageIterator::new(&path).collect()
     }
 }
 
-/// An iterator over the messages in a `Storage`.
-///
-/// For now, this iterator will just return all messages with an `sbd` extension under the root of
-/// the storage tree. We could try to get smarter and mirror the pattern logic for saving, but for
-/// now that's more work and complexity than we need.
-///
-/// # Errors
-///
-/// This iterator's `Item` is a `sbd::Result<Message>`, because a file with an `sbd` extension
-/// might not convert to a message successfully.
-#[allow(missing_debug_implementations)]
-pub struct StorageIterator {
-    iter: walkdir::Iter,
-}
-
 impl StorageIterator {
     fn new(root: &Path) -> StorageIterator {
-        StorageIterator { iter: walkdir::WalkDir::new(root).into_iter() }
+        StorageIterator {
+            iter: walkdir::WalkDir::new(root).into_iter(),
+        }
     }
 }
 
 impl Iterator for StorageIterator {
-    type Item = Result<Message>;
+    type Item = Result<Message, ::failure::Error>;
     fn next(&mut self) -> Option<Self::Item> {
         self.iter
             .by_ref()
             .skip_while(|r| {
                 r.as_ref()
-                    .map(|d| {
-                        d.path().extension().map_or(true, |e| e != SBD_EXTENSION)
-                    })
+                    .map(|d| d.path().extension().map_or(true, |e| e != SBD_EXTENSION))
                     .unwrap_or(true)
             })
             .next()
             .map(|r| {
-                r.map_err(Error::from).and_then(
-                    |d| Message::from_path(d.path()),
-                )
+                r.map_err(Error::from)
+                    .and_then(|d| Message::from_path(d.path()))
             })
+    }
+}
+
+impl fmt::Display for NotADirectory {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "not a directory: {}", self.0.to_string_lossy())
     }
 }
 

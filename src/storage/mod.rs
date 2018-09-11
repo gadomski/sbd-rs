@@ -6,7 +6,7 @@ mod memory;
 pub use self::filesystem::Storage as FilesystemStorage;
 pub use self::memory::Storage as MemoryStorage;
 
-use Result;
+use failure::Error;
 use mo::Message;
 
 /// Basic storage operations.
@@ -22,7 +22,7 @@ pub trait Storage {
     /// let mut storage = MemoryStorage::new();
     /// storage.store(message);
     /// ```
-    fn store(&mut self, message: Message) -> Result<()>;
+    fn store(&mut self, message: Message) -> Result<(), Error>;
 
     /// Retrieves all messages in this storage as a vector.
     ///
@@ -37,7 +37,7 @@ pub trait Storage {
     /// let messages = storage.messages().unwrap();
     /// assert_eq!(vec![message], messages);
     /// ```
-    fn messages(&self) -> Result<Vec<Message>>;
+    fn messages(&self) -> Result<Vec<Message>, Error>;
 
     /// Retrieves all messages for a given IMEI.
     ///
@@ -57,7 +57,7 @@ pub trait Storage {
     /// let messages = storage.messages_from_imei("300234063904191").unwrap();
     /// assert!(messages.is_empty());
     /// ```
-    fn messages_from_imei(&self, imei: &str) -> Result<Vec<Message>> {
+    fn messages_from_imei(&self, imei: &str) -> Result<Vec<Message>, Error> {
         self.messages().map(|mut v| {
             v.retain(|m| m.imei() == imei);
             v
