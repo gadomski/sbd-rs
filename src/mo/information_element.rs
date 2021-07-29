@@ -137,7 +137,7 @@ impl InformationElement {
             }
             InformationElement::LocationInformation(ref bytes) => {
                 write.write_u8(3)?;
-                write.write_u16::<BigEndian>(7)?;
+                write.write_u16::<BigEndian>(20)?;
                 write.write_all(bytes)?;
             }
         }
