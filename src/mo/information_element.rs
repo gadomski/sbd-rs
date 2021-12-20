@@ -6,6 +6,7 @@
 use std::io::{Read, Write};
 
 use chrono::Utc;
+use failure::Fail;
 
 use crate::mo::{Header, SessionStatus};
 

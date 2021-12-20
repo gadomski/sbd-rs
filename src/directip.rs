@@ -16,6 +16,8 @@ use std::{
     thread,
 };
 
+use log::{debug, error, info, warn};
+
 use crate::{mo::Message, storage::Storage};
 
 /// A Iridium `DirectIP` server.

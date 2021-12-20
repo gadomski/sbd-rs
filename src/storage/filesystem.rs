@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use failure::Error;
+use failure::{Error, Fail};
 use walkdir;
 
 use crate::{mo::Message, storage};
