@@ -1,12 +1,12 @@
 //! Store SBD messages on the filesystem.
 
+use crate::mo::Message;
+use crate::storage;
 use failure::Error;
-use mo::Message;
 use std::ffi::OsString;
 use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
-use storage;
 
 use walkdir;
 
@@ -146,13 +146,12 @@ impl fmt::Display for NotADirectory {
 mod tests {
     use std::path::PathBuf;
 
-    extern crate tempdir;
-    use self::tempdir::TempDir;
+    use tempdir::TempDir;
 
     use super::*;
 
-    use mo::Message;
-    use storage::Storage as StorageTrait;
+    use crate::mo::Message;
+    use crate::storage::Storage as StorageTrait;
 
     #[test]
     fn open() {

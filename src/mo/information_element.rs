@@ -4,7 +4,7 @@
 //! including more header-type information and the actual data payload.
 
 use chrono::Utc;
-use mo::{Header, SessionStatus};
+use crate::mo::{Header, SessionStatus};
 use std::io::{Read, Write};
 
 /// A mobile-originated information element, or IE.

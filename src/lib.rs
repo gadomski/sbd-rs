@@ -47,15 +47,12 @@
 )]
 #![recursion_limit = "128"]
 
-extern crate byteorder;
-extern crate chrono;
 #[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde_derive;
-extern crate walkdir;
 
 pub mod directip;
 pub mod mo;

@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use mo::SessionStatus;
+use crate::mo::SessionStatus;
 
 /// A mobile-originated header.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

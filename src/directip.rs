@@ -9,13 +9,13 @@
 //! This module provides a `Server` structure, which can be created to run
 //! forever and receive those incoming MO messages.
 
-use mo::Message;
+use crate::mo::Message;
 use std::io;
 use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use storage::Storage;
+use crate::storage::Storage;
 
 /// A Iridium `DirectIP` server.
 ///
