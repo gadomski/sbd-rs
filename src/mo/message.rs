@@ -5,6 +5,7 @@ use std::{
 };
 
 use chrono::{DateTime, Utc};
+use failure::Fail;
 
 use crate::mo::{Header, InformationElement, SessionStatus};
 

@@ -1,3 +1,6 @@
+use failure::Fail;
+use serde::Serialize;
+
 /// The status of a mobile-originated session.
 ///
 /// The descriptions for these codes are taken directly from the `DirectIP` documentation.
