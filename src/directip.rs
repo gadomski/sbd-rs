@@ -114,7 +114,7 @@ where
 }
 
 /// Handles an incoming `DirectIP` stream.
-fn handle_stream(stream: TcpStream, storage: Arc<Mutex<Storage>>) {
+fn handle_stream(stream: TcpStream, storage: Arc<Mutex<dyn Storage>>) {
     match stream.peer_addr() {
         Ok(addr) => {
             debug!("Handling TcpStream from {}", addr);
