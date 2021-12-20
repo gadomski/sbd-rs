@@ -8,7 +8,7 @@ mod information_element;
 mod message;
 mod session_status;
 
-pub use self::header::Header;
-pub use self::information_element::InformationElement;
-pub use self::message::Message;
-pub use self::session_status::SessionStatus;
+pub use self::{
+    header::Header, information_element::InformationElement, message::Message,
+    session_status::SessionStatus,
+};

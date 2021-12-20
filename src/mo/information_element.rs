@@ -3,9 +3,11 @@
 //! Information elements come after the SBD header. They come in many types,
 //! including more header-type information and the actual data payload.
 
-use crate::mo::{Header, SessionStatus};
-use chrono::Utc;
 use std::io::{Read, Write};
+
+use chrono::Utc;
+
+use crate::mo::{Header, SessionStatus};
 
 /// A mobile-originated information element, or IE.
 ///
@@ -106,8 +108,9 @@ impl InformationElement {
 
     /// Writes this information element to a `Write`.
     pub fn write_to<W: Write>(&self, mut write: W) -> Result<(), ::failure::Error> {
-        use byteorder::{BigEndian, WriteBytesExt};
         use std::u16;
+
+        use byteorder::{BigEndian, WriteBytesExt};
 
         match *self {
             InformationElement::Header(ref header) => {
@@ -159,10 +162,14 @@ impl From<Vec<u8>> for InformationElement {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::{
+        fs::File,
+        io::{Cursor, Read, Seek, SeekFrom},
+    };
+
     use chrono::TimeZone;
-    use std::fs::File;
-    use std::io::{Cursor, Read, Seek, SeekFrom};
+
+    use super::*;
 
     #[test]
     fn read_from() {

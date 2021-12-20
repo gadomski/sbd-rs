@@ -1,5 +1,6 @@
-use crate::mo::SessionStatus;
 use chrono::{DateTime, Utc};
+
+use crate::mo::SessionStatus;
 
 /// A mobile-originated header.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

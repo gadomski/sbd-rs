@@ -3,11 +3,10 @@
 mod filesystem;
 mod memory;
 
-pub use self::filesystem::Storage as FilesystemStorage;
-pub use self::memory::Storage as MemoryStorage;
-
-use crate::mo::Message;
 use failure::Error;
+
+pub use self::{filesystem::Storage as FilesystemStorage, memory::Storage as MemoryStorage};
+use crate::mo::Message;
 
 /// Basic storage operations.
 pub trait Storage {

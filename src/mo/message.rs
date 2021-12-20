@@ -1,8 +1,12 @@
-use crate::mo::{Header, InformationElement, SessionStatus};
+use std::{
+    cmp::Ordering,
+    io::{Read, Write},
+    path::Path,
+};
+
 use chrono::{DateTime, Utc};
-use std::cmp::Ordering;
-use std::io::{Read, Write};
-use std::path::Path;
+
+use crate::mo::{Header, InformationElement, SessionStatus};
 
 /// The only valid protocol revision number.
 pub const PROTOCOL_REVISION_NUMBER: u8 = 1;
@@ -75,8 +79,9 @@ impl Message {
     /// let message = Message::read_from(file).unwrap();
     /// ```
     pub fn read_from<R: Read>(mut read: R) -> Result<Message, ::failure::Error> {
-        use byteorder::{BigEndian, ReadBytesExt};
         use std::io::Cursor;
+
+        use byteorder::{BigEndian, ReadBytesExt};
 
         let protocol_revision_number = read.read_u8()?;
         if protocol_revision_number != PROTOCOL_REVISION_NUMBER {
@@ -256,8 +261,9 @@ impl Message {
     /// message.write_to(&mut cursor);
     /// ```
     pub fn write_to<W: Write>(&self, mut write: W) -> Result<(), ::failure::Error> {
-        use byteorder::{BigEndian, WriteBytesExt};
         use std::u16;
+
+        use byteorder::{BigEndian, WriteBytesExt};
 
         let header = InformationElement::from(self.header);
         let payload = InformationElement::from(self.payload.clone());
@@ -297,12 +303,16 @@ impl Ord for Message {
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        fs::File,
+        io::{Cursor, Read},
+        str,
+    };
+
+    use chrono::{TimeZone, Utc};
+
     use super::*;
     use crate::mo::Header;
-    use chrono::{TimeZone, Utc};
-    use std::fs::File;
-    use std::io::{Cursor, Read};
-    use std::str;
 
     pub fn header() -> Header {
         Header {

@@ -2,8 +2,7 @@
 //!
 //! Useful primarily for testing.
 
-use crate::mo::Message;
-use crate::storage;
+use crate::{mo::Message, storage};
 
 /// A simple storage backend that saves the messages in memory.
 #[derive(Debug, Default)]
@@ -40,9 +39,7 @@ impl storage::Storage for Storage {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    use crate::mo::Message;
-    use crate::storage::Storage as StorageTrait;
+    use crate::{mo::Message, storage::Storage as StorageTrait};
 
     #[test]
     fn store() {
