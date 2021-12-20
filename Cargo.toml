@@ -14,7 +14,7 @@ edition = "2021"
 [dependencies]
 byteorder = "1.1"
 chrono = "0.4"
-docopt = "0.8"
+docopt = "1"
 failure = "*"
 log = "0.3"
 quick-error = "1.2"
