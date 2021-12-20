@@ -55,5 +55,8 @@
 #![recursion_limit = "128"]
 
 pub mod directip;
+mod error;
 pub mod mo;
 pub mod storage;
+
+pub use error::Error;

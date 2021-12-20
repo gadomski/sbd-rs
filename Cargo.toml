@@ -15,11 +15,10 @@ edition = "2021"
 byteorder = "1.1"
 chrono = "0.4"
 docopt = "1"
-failure = "*"
 log = { version = "0.4", features = ["std"] }
-quick-error = "1.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+thiserror = "1"
 walkdir = "2"
 
 [dev-dependencies]

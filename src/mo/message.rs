@@ -1,44 +1,19 @@
 use std::{
     cmp::Ordering,
-    io::{Read, Write},
+    io::{Cursor, Read, Write},
     path::Path,
 };
 
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use chrono::{DateTime, Utc};
-use failure::Fail;
 
-use crate::mo::{Header, InformationElement, SessionStatus};
+use crate::{
+    mo::{Header, InformationElement, SessionStatus},
+    Error,
+};
 
 /// The only valid protocol revision number.
 pub const PROTOCOL_REVISION_NUMBER: u8 = 1;
-
-/// Errors returned when creating a message.
-#[derive(Debug, Fail)]
-pub enum Error {
-    /// The message has an invalid protocol revision number.
-    #[fail(display = "invalid protocol revision number: {}", _0)]
-    InvalidProtocolRevisionNumber(u8),
-
-    /// There are two headers in the message.
-    #[fail(display = "two headers")]
-    TwoHeaders(Header, Header),
-
-    /// There are two payloads in the message.
-    #[fail(display = "two payloads")]
-    TwoPayloads(Vec<u8>, Vec<u8>),
-
-    /// There is no header in the message.
-    #[fail(display = "no header")]
-    NoHeader,
-
-    /// There is no payload in the message.
-    #[fail(display = "no payload")]
-    NoPayload,
-
-    /// The overall message length is too big.
-    #[fail(display = "the overall message length is too big: {}", _0)]
-    OverallMessageLength(usize),
-}
 
 /// Error returned when there is no
 
@@ -61,7 +36,7 @@ impl Message {
     /// use sbd::mo::Message;
     /// let message = Message::from_path("data/0-mo.sbd").unwrap();
     /// ```
-    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Message, ::failure::Error> {
+    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Message, Error> {
         use std::fs::File;
         let file = File::open(path)?;
         Message::read_from(file)
@@ -79,14 +54,12 @@ impl Message {
     /// let mut file = File::open("data/0-mo.sbd").unwrap();
     /// let message = Message::read_from(file).unwrap();
     /// ```
-    pub fn read_from<R: Read>(mut read: R) -> Result<Message, ::failure::Error> {
-        use std::io::Cursor;
-
-        use byteorder::{BigEndian, ReadBytesExt};
-
+    pub fn read_from<R: Read>(mut read: R) -> Result<Message, Error> {
         let protocol_revision_number = read.read_u8()?;
         if protocol_revision_number != PROTOCOL_REVISION_NUMBER {
-            return Err(Error::InvalidProtocolRevisionNumber(protocol_revision_number).into());
+            return Err(Error::InvalidProtocolRevisionNumber(
+                protocol_revision_number,
+            ));
         }
         let overall_message_length = read.read_u16::<BigEndian>()?;
         let mut message = vec![0; overall_message_length as usize];
@@ -98,7 +71,7 @@ impl Message {
             information_elements.push(InformationElement::read_from(&mut cursor)?);
         }
 
-        Message::new(information_elements).map_err(::failure::Error::from)
+        Message::new(information_elements)
     }
 
     /// Creates a new message from information elements.
@@ -261,11 +234,7 @@ impl Message {
     /// let mut cursor = Cursor::new(Vec::new());
     /// message.write_to(&mut cursor);
     /// ```
-    pub fn write_to<W: Write>(&self, mut write: W) -> Result<(), ::failure::Error> {
-        use std::u16;
-
-        use byteorder::{BigEndian, WriteBytesExt};
-
+    pub fn write_to<W: Write>(&self, mut write: W) -> Result<(), Error> {
         let header = InformationElement::from(self.header);
         let payload = InformationElement::from(self.payload.clone());
         let overall_message_length = header.len()
@@ -276,7 +245,7 @@ impl Message {
                 .map(|ie| ie.len())
                 .sum::<usize>();
         if overall_message_length > u16::MAX as usize {
-            return Err(Error::OverallMessageLength(overall_message_length).into());
+            return Err(Error::OverallMessageLength(overall_message_length));
         }
 
         write.write_u8(PROTOCOL_REVISION_NUMBER)?;

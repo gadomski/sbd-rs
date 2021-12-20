@@ -5,10 +5,13 @@
 
 use std::io::{Read, Write};
 
-use chrono::Utc;
-use failure::Fail;
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use chrono::{TimeZone, Utc};
 
-use crate::mo::{Header, SessionStatus};
+use crate::{
+    mo::{Header, SessionStatus},
+    Error,
+};
 
 /// A mobile-originated information element, or IE.
 ///
@@ -28,28 +31,9 @@ pub enum InformationElement {
     LocationInformation([u8; 7]),
 }
 
-/// Mobile-originated information element errors.
-#[derive(Clone, Copy, Debug, Fail)]
-pub enum Error {
-    /// The identifier is invalid.
-    #[fail(display = "invalid information element identifier: {}", _0)]
-    InvalidInformationElementIdentifier(u8),
-
-    /// The timestamp is negative.
-    #[fail(display = "negative timestamp: {}", _0)]
-    NegativeTimestamp(i64),
-
-    /// The payload is too long.
-    #[fail(display = "the payload is too long at {} bytes", _0)]
-    PayloadTooLong(usize),
-}
-
 impl InformationElement {
     /// Reads this information element from a `Read`.
-    pub fn read_from<R: Read>(mut read: R) -> Result<InformationElement, ::failure::Error> {
-        use byteorder::{BigEndian, ReadBytesExt};
-        use chrono::TimeZone;
-
+    pub fn read_from<R: Read>(mut read: R) -> Result<InformationElement, Error> {
         let iei = read.read_u8()?;
         let length = read.read_u16::<BigEndian>()?;
         match iei {
@@ -62,7 +46,6 @@ impl InformationElement {
                 let mtmsn = read.read_u16::<BigEndian>()?;
                 let time_of_session = read
                     .read_u32::<BigEndian>()
-                    .map_err(::failure::Error::from)
                     .map(|n| Utc.timestamp(i64::from(n), 0))?;
                 Ok(InformationElement::Header(Header {
                     auto_id,
@@ -84,7 +67,7 @@ impl InformationElement {
                 Ok(InformationElement::LocationInformation(bytes))
             }
             5 => unimplemented!(),
-            _ => Err(Error::InvalidInformationElementIdentifier(iei).into()),
+            _ => Err(Error::InvalidInformationElementIdentifier(iei)),
         }
     }
 
@@ -108,11 +91,7 @@ impl InformationElement {
     }
 
     /// Writes this information element to a `Write`.
-    pub fn write_to<W: Write>(&self, mut write: W) -> Result<(), ::failure::Error> {
-        use std::u16;
-
-        use byteorder::{BigEndian, WriteBytesExt};
-
+    pub fn write_to<W: Write>(&self, mut write: W) -> Result<(), Error> {
         match *self {
             InformationElement::Header(ref header) => {
                 write.write_u8(1)?;
@@ -124,7 +103,7 @@ impl InformationElement {
                 write.write_u16::<BigEndian>(header.mtmsn)?;
                 let timestamp = header.time_of_session.timestamp();
                 if timestamp < 0 {
-                    return Err(Error::NegativeTimestamp(timestamp).into());
+                    return Err(Error::NegativeTimestamp(timestamp));
                 } else {
                     write.write_u32::<BigEndian>(timestamp as u32)?;
                 };
@@ -133,7 +112,7 @@ impl InformationElement {
                 write.write_u8(2)?;
                 let len = payload.len();
                 if len > u16::MAX as usize {
-                    return Err(Error::PayloadTooLong(len).into());
+                    return Err(Error::PayloadTooLong(len));
                 } else {
                     write.write_u16::<BigEndian>(len as u16)?;
                 }

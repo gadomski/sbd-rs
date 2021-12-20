@@ -1,15 +1,13 @@
 //! Store SBD messages on the filesystem.
 
 use std::{
-    ffi::OsString,
-    fmt, fs,
+    fs,
     path::{Path, PathBuf},
 };
 
-use failure::{Error, Fail};
 use walkdir;
 
-use crate::{mo::Message, storage};
+use crate::{mo::Message, storage, Error};
 
 const SBD_EXTENSION: &str = "sbd";
 
@@ -38,10 +36,6 @@ pub struct StorageIterator {
     iter: walkdir::IntoIter,
 }
 
-/// An error returned when trying to create a storage for a non-directoy.
-#[derive(Debug, Fail)]
-pub struct NotADirectory(OsString);
-
 impl Storage {
     /// Opens a new storage for a given directory.
     ///
@@ -56,10 +50,10 @@ impl Storage {
     /// let storage = FilesystemStorage::open("data").unwrap();
     /// assert!(FilesystemStorage::open("not/a/directory").is_err());
     /// ```
-    pub fn open<P: AsRef<Path>>(root: P) -> Result<Storage, ::failure::Error> {
+    pub fn open<P: AsRef<Path>>(root: P) -> Result<Storage, Error> {
         let metadata = fs::metadata(root.as_ref())?;
         if !metadata.is_dir() {
-            Err(NotADirectory(root.as_ref().as_os_str().to_os_string()).into())
+            Err(Error::NotADirectory(root.as_ref().to_path_buf()))
         } else {
             Ok(Storage {
                 root: root.as_ref().to_path_buf(),
@@ -83,7 +77,7 @@ impl Storage {
 }
 
 impl storage::Storage for Storage {
-    fn store(&mut self, message: Message) -> Result<(), ::failure::Error> {
+    fn store(&mut self, message: Message) -> Result<(), Error> {
         let mut path_buf = self.root.clone();
         path_buf.push(message.imei());
         path_buf.push(message.time_of_session().format("%Y").to_string());
@@ -100,11 +94,11 @@ impl storage::Storage for Storage {
         Ok(())
     }
 
-    fn messages(&self) -> Result<Vec<Message>, ::failure::Error> {
+    fn messages(&self) -> Result<Vec<Message>, Error> {
         self.iter().collect()
     }
 
-    fn messages_from_imei(&self, imei: &str) -> Result<Vec<Message>, ::failure::Error> {
+    fn messages_from_imei(&self, imei: &str) -> Result<Vec<Message>, Error> {
         let mut path = self.root.clone();
         path.push(imei);
         StorageIterator::new(&path).collect()
@@ -120,7 +114,7 @@ impl StorageIterator {
 }
 
 impl Iterator for StorageIterator {
-    type Item = Result<Message, ::failure::Error>;
+    type Item = Result<Message, Error>;
     fn next(&mut self) -> Option<Self::Item> {
         self.iter
             .by_ref()
@@ -133,12 +127,6 @@ impl Iterator for StorageIterator {
                 r.map_err(Error::from)
                     .and_then(|d| Message::from_path(d.path()))
             })
-    }
-}
-
-impl fmt::Display for NotADirectory {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "not a directory: {}", self.0.to_string_lossy())
     }
 }
 
