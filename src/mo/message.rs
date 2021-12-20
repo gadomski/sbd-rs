@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use mo::{Header, InformationElement, SessionStatus};
+use crate::mo::{Header, InformationElement, SessionStatus};
 use std::cmp::Ordering;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -294,7 +294,7 @@ impl Ord for Message {
 mod tests {
     use super::*;
     use chrono::{TimeZone, Utc};
-    use mo::Header;
+    use crate::mo::Header;
     use std::fs::File;
     use std::io::{Cursor, Read};
     use std::str;
