@@ -18,8 +18,7 @@ docopt = "1"
 failure = "*"
 log = { version = "0.4", features = ["std"] }
 quick-error = "1.2"
-serde = "1.0"
-serde_derive = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 walkdir = "2"
 

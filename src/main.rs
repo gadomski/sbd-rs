@@ -1,13 +1,5 @@
 //! Command line utility for querying and working with Iridium SBD messages.
 
-extern crate chrono;
-extern crate docopt;
-extern crate log;
-extern crate sbd;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-
 use std::{io::Write, path::Path, process, str};
 
 use docopt::Docopt;
@@ -16,6 +8,7 @@ use sbd::{
     mo::{Message, SessionStatus},
     storage::FilesystemStorage,
 };
+use serde::{Deserialize, Serialize};
 
 const USAGE: &str = "
 Iridium Short Burst Data (SBD) message utility.
