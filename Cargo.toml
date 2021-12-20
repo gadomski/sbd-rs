@@ -16,7 +16,7 @@ byteorder = "1.1"
 chrono = "0.4"
 docopt = "1"
 failure = "*"
-log = "0.3"
+log = { version = "0.4", features = ["std"] }
 quick-error = "1.2"
 serde = "1.0"
 serde_derive = "1.0"

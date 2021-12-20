@@ -63,11 +63,11 @@ struct ReadableMessage {
 }
 
 impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
-    fn enabled(&self, metadata: &log::LogMetadata) -> bool {
-        metadata.level() <= log::LogLevel::Debug
+    fn enabled(&self, metadata: &log::Metadata) -> bool {
+        metadata.level() <= log::Level::Debug
     }
 
-    fn log(&self, record: &log::LogRecord) {
+    fn log(&self, record: &log::Record) {
         if self.enabled(record.metadata()) {
             let mut file = std::fs::OpenOptions::new()
                 .create(true)
@@ -87,6 +87,8 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
             .unwrap();
         }
     }
+
+    fn flush(&self) {}
 }
 
 impl ReadableMessage {
@@ -121,16 +123,15 @@ fn main() {
         unimplemented!()
     }
     if args.cmd_serve {
-        log::set_logger(|max_log_level| {
-            max_log_level.set(log::LogLevelFilter::Debug);
-            Box::new(Logger {
-                path: args.flag_logfile.clone(),
-            })
-        })
-        .unwrap_or_else(|e| {
-            println!("ERROR: Could not create logger: {}", e);
-            process::exit(1);
-        });
+        let logger = Logger {
+            path: args.flag_logfile.clone(),
+        };
+        log::set_boxed_logger(Box::new(logger))
+            .map(|()| log::set_max_level(log::LevelFilter::Debug))
+            .unwrap_or_else(|e| {
+                println!("ERROR: Could not create logger: {}", e);
+                process::exit(1);
+            });
         let storage = FilesystemStorage::open(args.arg_directory).unwrap_or_else(|e| {
             println!("ERROR: Could not open storage: {}", e);
             process::exit(1);
