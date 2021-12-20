@@ -8,14 +8,14 @@ extern crate sbd;
 extern crate serde_derive;
 extern crate serde_json;
 
+use std::{io::Write, path::Path, process, str};
+
 use docopt::Docopt;
-use sbd::directip::Server;
-use sbd::mo::{Message, SessionStatus};
-use sbd::storage::FilesystemStorage;
-use std::io::Write;
-use std::path::Path;
-use std::process;
-use std::str;
+use sbd::{
+    directip::Server,
+    mo::{Message, SessionStatus},
+    storage::FilesystemStorage,
+};
 
 const USAGE: &str = "
 Iridium Short Burst Data (SBD) message utility.

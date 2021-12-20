@@ -1,14 +1,15 @@
 //! Store SBD messages on the filesystem.
 
-use crate::mo::Message;
-use crate::storage;
-use failure::Error;
-use std::ffi::OsString;
-use std::fmt;
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::OsString,
+    fmt, fs,
+    path::{Path, PathBuf},
+};
 
+use failure::Error;
 use walkdir;
+
+use crate::{mo::Message, storage};
 
 const SBD_EXTENSION: &str = "sbd";
 
@@ -148,9 +149,7 @@ mod tests {
     use tempdir::TempDir;
 
     use super::*;
-
-    use crate::mo::Message;
-    use crate::storage::Storage as StorageTrait;
+    use crate::{mo::Message, storage::Storage as StorageTrait};
 
     #[test]
     fn open() {
