@@ -2,7 +2,7 @@
 //!
 //! Useful primarily for testing.
 
-use crate::{mo::Message, storage};
+use crate::{mo::Message, storage, Error};
 
 /// A simple storage backend that saves the messages in memory.
 #[derive(Debug, Default)]
@@ -26,12 +26,12 @@ impl Storage {
 }
 
 impl storage::Storage for Storage {
-    fn store(&mut self, message: Message) -> Result<(), ::failure::Error> {
+    fn store(&mut self, message: Message) -> Result<(), Error> {
         self.messages.push(message);
         Ok(())
     }
 
-    fn messages(&self) -> Result<Vec<Message>, ::failure::Error> {
+    fn messages(&self) -> Result<Vec<Message>, Error> {
         Ok(self.messages.clone())
     }
 }
