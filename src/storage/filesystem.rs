@@ -32,9 +32,9 @@ pub struct Storage {
 ///
 /// This iterator's `Item` is a `sbd::Result<Message>`, because a file with an `sbd` extension
 /// might not convert to a message successfully.
-#[allow(missing_debug_implementations)]
+#[derive(Debug)]
 pub struct StorageIterator {
-    iter: walkdir::Iter,
+    iter: walkdir::IntoIter,
 }
 
 /// An error returned when trying to create a storage for a non-directoy.
