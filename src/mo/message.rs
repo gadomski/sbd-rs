@@ -143,7 +143,7 @@ impl Message {
         Ok(Message {
             header: header.ok_or(Error::NoHeader)?,
             payload: payload.ok_or(Error::NoPayload)?,
-            information_elements: information_elements,
+            information_elements,
         })
     }
 
@@ -364,7 +364,7 @@ mod tests {
     #[test]
     fn two_headers() {
         let header = header();
-        assert!(Message::new(vec![header.clone().into(), header.into()]).is_err());
+        assert!(Message::new(vec![header.into(), header.into()]).is_err());
     }
 
     #[test]

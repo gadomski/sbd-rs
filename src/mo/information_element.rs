@@ -62,12 +62,12 @@ impl InformationElement {
                     .map_err(::failure::Error::from)
                     .map(|n| Utc.timestamp(i64::from(n), 0))?;
                 Ok(InformationElement::Header(Header {
-                    auto_id: auto_id,
-                    imei: imei,
-                    session_status: session_status,
-                    momsn: momsn,
-                    mtmsn: mtmsn,
-                    time_of_session: time_of_session,
+                    auto_id,
+                    imei,
+                    session_status,
+                    momsn,
+                    mtmsn,
+                    time_of_session,
                 }))
             }
             2 => {
@@ -178,7 +178,7 @@ mod tests {
                     assert_eq!(75, header.momsn);
                     assert_eq!(0, header.mtmsn);
                     assert_eq!(
-                        Utc.ymd(2015, 7, 9).and_hms(18, 15, 08),
+                        Utc.ymd(2015, 7, 9).and_hms(18, 15, 8),
                         header.time_of_session
                     );
                 }

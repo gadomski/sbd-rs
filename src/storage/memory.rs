@@ -49,7 +49,7 @@ mod tests {
         let mut storage = Storage::new();
         let message = Message::from_path("data/0-mo.sbd").unwrap();
         storage.store(message.clone()).unwrap();
-        let ref stored_message = storage.messages().unwrap()[0];
+        let stored_message = &storage.messages().unwrap()[0];
         assert_eq!(&message, stored_message);
     }
 }

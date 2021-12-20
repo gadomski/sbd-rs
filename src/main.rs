@@ -17,7 +17,7 @@ use std::path::Path;
 use std::process;
 use std::str;
 
-const USAGE: &'static str = "
+const USAGE: &str = "
 Iridium Short Burst Data (SBD) message utility.
 
 Usage:
@@ -99,7 +99,7 @@ impl ReadableMessage {
 
 fn main() {
     let args: Args = Docopt::new(USAGE)
-        .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
+        .map(|d| d.version(Some(env!("CARGO_PKG_VERSION").to_string())))
         .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
 

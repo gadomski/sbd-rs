@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 
 use walkdir;
 
-const SBD_EXTENSION: &'static str = "sbd";
+const SBD_EXTENSION: &str = "sbd";
 
 /// A structure for managing storing and retriving SBD messages on a filesystem.
 ///
@@ -123,12 +123,11 @@ impl Iterator for StorageIterator {
     fn next(&mut self) -> Option<Self::Item> {
         self.iter
             .by_ref()
-            .skip_while(|r| {
+            .find(|r| {
                 r.as_ref()
-                    .map(|d| d.path().extension().map_or(true, |e| e != SBD_EXTENSION))
-                    .unwrap_or(true)
+                    .map(|d| d.path().extension().map_or(false, |e| e == SBD_EXTENSION))
+                    .unwrap_or(false)
             })
-            .next()
             .map(|r| {
                 r.map_err(Error::from)
                     .and_then(|d| Message::from_path(d.path()))
@@ -186,10 +185,10 @@ mod tests {
     fn iter() {
         let tempdir = TempDir::new("").unwrap();
         let mut storage = Storage::open(tempdir.path()).unwrap();
-        assert_eq!(0, storage.iter().collect::<Vec<_>>().len());
+        assert_eq!(0, storage.iter().count());
         let message = Message::from_path("data/0-mo.sbd").unwrap();
         storage.store(message).unwrap();
-        assert_eq!(1, storage.iter().collect::<Vec<_>>().len());
+        assert_eq!(1, storage.iter().count());
     }
 
     #[test]
