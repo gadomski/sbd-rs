@@ -49,7 +49,7 @@ where
     /// ```
     pub fn new(addr: A, storage: S) -> Server<A, S> {
         Server {
-            addr: addr,
+            addr,
             listener: None,
             storage: Arc::new(Mutex::new(storage)),
         }
