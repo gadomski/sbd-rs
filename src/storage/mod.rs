@@ -6,8 +6,8 @@ mod memory;
 pub use self::filesystem::Storage as FilesystemStorage;
 pub use self::memory::Storage as MemoryStorage;
 
-use failure::Error;
 use crate::mo::Message;
+use failure::Error;
 
 /// Basic storage operations.
 pub trait Storage {

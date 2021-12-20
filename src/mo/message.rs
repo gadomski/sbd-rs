@@ -1,5 +1,5 @@
-use chrono::{DateTime, Utc};
 use crate::mo::{Header, InformationElement, SessionStatus};
+use chrono::{DateTime, Utc};
 use std::cmp::Ordering;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -123,16 +123,20 @@ impl Message {
         let mut information_elements = Vec::new();
         for information_element in iter {
             match information_element {
-                InformationElement::Header(h) => if let Some(header) = header {
-                    return Err(Error::TwoHeaders(h, header));
-                } else {
-                    header = Some(h);
-                },
-                InformationElement::Payload(p) => if let Some(payload) = payload {
-                    return Err(Error::TwoPayloads(p, payload));
-                } else {
-                    payload = Some(p);
-                },
+                InformationElement::Header(h) => {
+                    if let Some(header) = header {
+                        return Err(Error::TwoHeaders(h, header));
+                    } else {
+                        header = Some(h);
+                    }
+                }
+                InformationElement::Payload(p) => {
+                    if let Some(payload) = payload {
+                        return Err(Error::TwoPayloads(p, payload));
+                    } else {
+                        payload = Some(p);
+                    }
+                }
                 ie => information_elements.push(ie),
             }
         }
@@ -257,7 +261,8 @@ impl Message {
 
         let header = InformationElement::from(self.header);
         let payload = InformationElement::from(self.payload.clone());
-        let overall_message_length = header.len() + payload.len()
+        let overall_message_length = header.len()
+            + payload.len()
             + self
                 .information_elements
                 .iter()
@@ -293,8 +298,8 @@ impl Ord for Message {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{TimeZone, Utc};
     use crate::mo::Header;
+    use chrono::{TimeZone, Utc};
     use std::fs::File;
     use std::io::{Cursor, Read};
     use std::str;
@@ -386,7 +391,8 @@ mod tests {
             header().into(),
             vec![1].into(),
             InformationElement::LocationInformation([0; 7]),
-        ]).unwrap();
+        ])
+        .unwrap();
         let mut cursor = Cursor::new(Vec::new());
         message.write_to(&mut cursor).unwrap();
         cursor.set_position(0);

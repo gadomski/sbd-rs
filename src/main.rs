@@ -81,8 +81,10 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
                     chrono::Utc::now().format("%Y-%m-%d %H:%M:%S"),
                     record.level(),
                     record.args()
-                ).as_bytes(),
-            ).unwrap();
+                )
+                .as_bytes(),
+            )
+            .unwrap();
         }
     }
 }
@@ -95,9 +97,7 @@ impl ReadableMessage {
 
 fn main() {
     let args: Args = Docopt::new(USAGE)
-        .and_then(|d| {
-            Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string())))
-        })
+        .and_then(|d| Ok(d.version(Some(env!("CARGO_PKG_VERSION").to_string()))))
         .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
 
@@ -123,8 +123,11 @@ fn main() {
     if args.cmd_serve {
         log::set_logger(|max_log_level| {
             max_log_level.set(log::LogLevelFilter::Debug);
-            Box::new(Logger { path: args.flag_logfile.clone() })
-        }).unwrap_or_else(|e| {
+            Box::new(Logger {
+                path: args.flag_logfile.clone(),
+            })
+        })
+        .unwrap_or_else(|e| {
             println!("ERROR: Could not create logger: {}", e);
             process::exit(1);
         });
