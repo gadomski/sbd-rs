@@ -203,5 +203,4 @@ mod tests {
         let messages = storage.messages_from_imei("300234063904191").unwrap();
         assert!(messages.is_empty());
     }
-
 }

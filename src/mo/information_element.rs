@@ -3,8 +3,8 @@
 //! Information elements come after the SBD header. They come in many types,
 //! including more header-type information and the actual data payload.
 
-use chrono::Utc;
 use crate::mo::{Header, SessionStatus};
+use chrono::Utc;
 use std::io::{Read, Write};
 
 /// A mobile-originated information element, or IE.
@@ -252,11 +252,9 @@ mod tests {
             mtmsn: 1,
             time_of_session: Utc.ymd(1969, 12, 31).and_hms(23, 59, 59),
         };
-        assert!(
-            InformationElement::from(header)
-                .write_to(Cursor::new(Vec::new()))
-                .is_err()
-        );
+        assert!(InformationElement::from(header)
+            .write_to(Cursor::new(Vec::new()))
+            .is_err());
     }
 
     #[test]
@@ -273,11 +271,9 @@ mod tests {
     fn payload_too_long() {
         use std::u16;
         let payload = vec![0; u16::MAX as usize + 1];
-        assert!(
-            InformationElement::from(payload)
-                .write_to(Cursor::new(Vec::new()))
-                .is_err()
-        );
+        assert!(InformationElement::from(payload)
+            .write_to(Cursor::new(Vec::new()))
+            .is_err());
     }
 
     #[test]

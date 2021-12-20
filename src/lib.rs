@@ -41,9 +41,16 @@
 //! filesystem, and start that forever-running server to receive Iridium SBD `DirectIP` messages.
 
 #![deny(
-    missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
-    trivial_numeric_casts, unsafe_code, unstable_features, unused_extern_crates,
-    unused_import_braces, unused_qualifications
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs,
+    trivial_casts,
+    trivial_numeric_casts,
+    unsafe_code,
+    unstable_features,
+    unused_extern_crates,
+    unused_import_braces,
+    unused_qualifications
 )]
 #![recursion_limit = "128"]
 
