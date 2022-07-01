@@ -43,6 +43,10 @@ struct Header {
 }
 
 impl Header {
+    fn len(&self) -> usize {
+        21
+    }
+
     fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
         wtr.write_u8(0x41)?;
         wtr.write_u16::<BigEndian>(21)?;
