@@ -51,6 +51,14 @@ impl Header {
         wtr.write_u16::<BigEndian>(self.disposition_flags)?;
         Ok(24)
     }
+
+    // Export header to a vec of bytes
+    fn to_vec(&self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::new();
+        self.write(&mut buffer)
+            .expect("Failed to write MT-Header to a vec.");
+        buffer
+    }
 }
 
 #[cfg(test)]
@@ -58,7 +66,7 @@ mod test_mt_header {
     use super::Header;
 
     #[test]
-    fn test_header_write() {
+    fn header_write() {
         let header = Header {
             client_msg_id: 9999,
             imei: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
@@ -70,6 +78,24 @@ mod test_mt_header {
         assert_eq!(n.unwrap(), 24);
         assert_eq!(
             msg,
+            [
+                0x41, 0x00, 0x15, 0x00, 0x00, 0x27, 0x0f, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+                0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x27, 0x0f
+            ]
+        );
+    }
+
+    #[test]
+    fn header_to_vec() {
+        let header = Header {
+            client_msg_id: 9999,
+            imei: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+            disposition_flags: 9999,
+        };
+        let output = header.to_vec();
+
+        assert_eq!(
+            output,
             [
                 0x41, 0x00, 0x15, 0x00, 0x00, 0x27, 0x0f, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
                 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x27, 0x0f
