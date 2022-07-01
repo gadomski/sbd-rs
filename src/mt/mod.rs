@@ -132,3 +132,18 @@ impl Payload {
         Ok(3 + n)
     }
 }
+
+#[derive(Debug)]
+enum InformationElement {
+    H(Header),
+    P(Payload),
+}
+
+impl InformationElement {
+    fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
+        match self {
+            InformationElement::H(element) => element.write(wtr),
+            InformationElement::P(element) => element.write(wtr),
+        }
+    }
+}
