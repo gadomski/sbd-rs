@@ -139,7 +139,7 @@ struct Header {
     // Header length [2]
     client_msg_id: u32, // or 4 u8?
     imei: [u8; 15],
-    disposition_flags: u16, //Table 5-9
+    disposition_flags: DispositionFlags,
 }
 
 impl Header {
@@ -152,7 +152,7 @@ impl Header {
         wtr.write_u16::<BigEndian>(21)?;
         wtr.write_u32::<BigEndian>(self.client_msg_id)?;
         wtr.write(&self.imei)?;
-        wtr.write_u16::<BigEndian>(self.disposition_flags)?;
+        self.disposition_flags.write(wtr)?;
         Ok(24)
     }
 
@@ -167,14 +167,20 @@ impl Header {
 
 #[cfg(test)]
 mod test_mt_header {
-    use super::Header;
+    use super::{DispositionFlags, Header};
 
     #[test]
     fn header_write() {
         let header = Header {
             client_msg_id: 9999,
             imei: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
-            disposition_flags: 9999,
+            disposition_flags: DispositionFlags {
+                flush_queue: true,
+                send_ring_alert: true,
+                update_location: true,
+                high_priority: true,
+                assign_mtmsn: true,
+            },
         };
         let mut msg = vec![];
         let n = header.write(&mut msg);
@@ -184,7 +190,7 @@ mod test_mt_header {
             msg,
             [
                 0x41, 0x00, 0x15, 0x00, 0x00, 0x27, 0x0f, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-                0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x27, 0x0f
+                0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x00, 0x3b
             ]
         );
     }
@@ -194,7 +200,13 @@ mod test_mt_header {
         let header = Header {
             client_msg_id: 9999,
             imei: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
-            disposition_flags: 9999,
+            disposition_flags: DispositionFlags {
+                flush_queue: true,
+                send_ring_alert: true,
+                update_location: true,
+                high_priority: true,
+                assign_mtmsn: true,
+            },
         };
         let output = header.to_vec();
 
@@ -202,7 +214,7 @@ mod test_mt_header {
             output,
             [
                 0x41, 0x00, 0x15, 0x00, 0x00, 0x27, 0x0f, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-                0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x27, 0x0f
+                0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x00, 0x3b
             ]
         );
     }
