@@ -32,6 +32,106 @@ use byteorder::{BigEndian, WriteBytesExt};
 
 use crate::Error;
 
+#[derive(Debug)]
+/// Disposition Flags
+///
+/// Note: byte 3 was not defined at this point, skipping to 3rd.
+/// Therefore, all flags on is 0b0000_0000_0011_1011
+///
+/// Table 5-9
+struct DispositionFlags {
+    flush_queue: bool,
+    send_ring_alert: bool,
+    update_location: bool,
+    high_priority: bool,
+    assign_mtmsn: bool,
+}
+
+impl DispositionFlags {
+    fn encode(&self) -> u16 {
+        (u16::from(self.assign_mtmsn) << 5)
+            + (u16::from(self.high_priority) << 4)
+            + (u16::from(self.update_location) << 3)
+            + (u16::from(self.send_ring_alert) << 1)
+            + u16::from(self.flush_queue)
+    }
+
+    fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
+        wtr.write_u16::<BigEndian>(self.encode())?;
+        Ok(2)
+    }
+}
+
+#[cfg(test)]
+mod test_disposition_flags {
+    use super::DispositionFlags;
+
+    #[test]
+    fn encode_all_false() {
+        let flags = DispositionFlags {
+            flush_queue: false,
+            send_ring_alert: false,
+            update_location: false,
+            high_priority: false,
+            assign_mtmsn: false,
+        };
+
+        assert_eq!(flags.encode(), 0);
+    }
+
+    #[test]
+    fn encode_flush_queue() {
+        let flags = DispositionFlags {
+            flush_queue: true,
+            send_ring_alert: false,
+            update_location: false,
+            high_priority: false,
+            assign_mtmsn: false,
+        };
+
+        assert_eq!(flags.encode(), 1);
+    }
+
+    #[test]
+    fn encode_send_ring_alert() {
+        let flags = DispositionFlags {
+            flush_queue: false,
+            send_ring_alert: true,
+            update_location: false,
+            high_priority: false,
+            assign_mtmsn: false,
+        };
+
+        assert_eq!(flags.encode(), 2);
+    }
+
+    #[test]
+    fn encode_assign_mtmsn() {
+        let flags = DispositionFlags {
+            flush_queue: false,
+            send_ring_alert: false,
+            update_location: false,
+            high_priority: false,
+            assign_mtmsn: true,
+        };
+
+        assert_eq!(flags.encode(), 32);
+    }
+
+    #[test]
+    fn encode_all_true() {
+        let flags = DispositionFlags {
+            flush_queue: true,
+            send_ring_alert: true,
+            update_location: true,
+            high_priority: true,
+            assign_mtmsn: true,
+        };
+
+        assert_eq!(flags.encode(), 59);
+    }
+}
+
 /// Mobile Terminated Header
 #[derive(Debug)]
 struct Header {
