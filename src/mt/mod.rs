@@ -101,6 +101,12 @@ impl DispositionFlags {
         }
     }
 
+    /// Parse a DispositionFlags from a Read trait
+    fn read_from<R: std::io::Read>(mut read: R) -> Result<Self, Error> {
+        let code = read.read_u16::<BigEndian>()?;
+        Ok(DispositionFlags::decode(code))
+    }
+
     fn encode(&self) -> u16 {
         (u16::from(self.assign_mtmsn) << 5)
             + (u16::from(self.high_priority) << 4)
