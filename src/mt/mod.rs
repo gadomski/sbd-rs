@@ -296,6 +296,19 @@ impl Header {
         21
     }
 
+    fn read_from<R: std::io::Read>(mut read: R) -> Result<Header, Error> {
+        let client_msg_id = read.read_u32::<BigEndian>()?;
+        let mut imei = [0; 15];
+        read.read_exact(&mut imei)?;
+        let disposition_flags = DispositionFlags::read_from(read)?;
+
+        Ok(Header {
+            client_msg_id,
+            imei,
+            disposition_flags,
+        })
+    }
+
     fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
         wtr.write_u8(0x41)?;
         wtr.write_u16::<BigEndian>(21)?;
