@@ -32,11 +32,11 @@ use byteorder::{BigEndian, WriteBytesExt};
 
 use crate::Error;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 /// Disposition Flags
 ///
 /// Note: byte 3 was not defined at this point, skipping to 3rd.
-/// Therefore, all flags on is 0b0000_0000_0011_1011
+/// Therefore, all flags on is currently 0b0000_0000_0011_1011.
 ///
 /// Table 5-9
 struct DispositionFlags {
@@ -48,6 +48,59 @@ struct DispositionFlags {
 }
 
 impl DispositionFlags {
+    /// Decode a u16 into a DispositionFlags
+    ///
+    /// Each flag is encoded by a bit in a specific position, which
+    /// is on (true) or off (false).
+    ///
+    /// Flag values:
+    /// * Flush MT Queue (1): Delete all MT payloads in the SSD’s MT
+    ///   queue
+    /// * Send Ring Alert - Mo MTM (2): Send ring alert with no
+    ///   associated MT payload (normal ring alert rules apply)
+    /// * Update SSD Location (8): Update SSD location with given
+    ///   lat/lon values
+    /// * High Priority Message (16): Place the associated MT payload in
+    ///   front of queue
+    /// * Assign MTMSN (32): Use the value in the Unique ID field as the
+    ///   MTMSN
+    ///
+    /// # Notes:
+    ///
+    /// - All non used bits are ignored. It might be useful to
+    ///   consider a more strict approach, where this would fail if
+    ///   non-expected bit is activated.
+    fn decode(code: u16) -> Self {
+        let flush_queue = match code & 0b0000_0000_0000_0001 {
+            0 => false,
+            _ => true,
+        };
+        let send_ring_alert = match code & 0b0000_0000_0000_0010 {
+            0 => false,
+            _ => true,
+        };
+        let update_location = match code & 0b0000_0000_0000_1000 {
+            0 => false,
+            _ => true,
+        };
+        let high_priority = match code & 0b0000_0000_0001_0000 {
+            0 => false,
+            _ => true,
+        };
+        let assign_mtmsn = match code & 0b0000_0000_0010_0000 {
+            0 => false,
+            _ => true,
+        };
+
+        DispositionFlags {
+            flush_queue,
+            send_ring_alert,
+            update_location,
+            high_priority,
+            assign_mtmsn,
+        }
+    }
+
     fn encode(&self) -> u16 {
         (u16::from(self.assign_mtmsn) << 5)
             + (u16::from(self.high_priority) << 4)
@@ -67,6 +120,66 @@ mod test_disposition_flags {
     use super::DispositionFlags;
 
     #[test]
+    fn decode_all_false() {
+        let ans = DispositionFlags {
+            flush_queue: false,
+            send_ring_alert: false,
+            update_location: false,
+            high_priority: false,
+            assign_mtmsn: false,
+        };
+        assert_eq!(ans, DispositionFlags::decode(0));
+    }
+
+    #[test]
+    fn decode_flush_queue() {
+        let ans = DispositionFlags {
+            flush_queue: true,
+            send_ring_alert: false,
+            update_location: false,
+            high_priority: false,
+            assign_mtmsn: false,
+        };
+        assert_eq!(ans, DispositionFlags::decode(1));
+    }
+
+    #[test]
+    fn decode_send_ring_alert() {
+        let ans = DispositionFlags {
+            flush_queue: false,
+            send_ring_alert: true,
+            update_location: false,
+            high_priority: false,
+            assign_mtmsn: false,
+        };
+        assert_eq!(ans, DispositionFlags::decode(2));
+    }
+
+    #[test]
+    fn decode_update_location() {
+        let ans = DispositionFlags {
+            flush_queue: false,
+            send_ring_alert: false,
+            update_location: true,
+            high_priority: false,
+            assign_mtmsn: false,
+        };
+        assert_eq!(ans, DispositionFlags::decode(8));
+    }
+
+    #[test]
+    fn decode_all_true() {
+        let ans = DispositionFlags {
+            flush_queue: true,
+            send_ring_alert: true,
+            update_location: true,
+            high_priority: true,
+            assign_mtmsn: true,
+        };
+        assert_eq!(ans, DispositionFlags::decode(59));
+    }
+
+    #[test]
     fn encode_all_false() {
         let flags = DispositionFlags {
             flush_queue: false,
@@ -75,7 +188,6 @@ mod test_disposition_flags {
             high_priority: false,
             assign_mtmsn: false,
         };
-
         assert_eq!(flags.encode(), 0);
     }
 
@@ -88,7 +200,6 @@ mod test_disposition_flags {
             high_priority: false,
             assign_mtmsn: false,
         };
-
         assert_eq!(flags.encode(), 1);
     }
 
@@ -101,8 +212,31 @@ mod test_disposition_flags {
             high_priority: false,
             assign_mtmsn: false,
         };
-
         assert_eq!(flags.encode(), 2);
+    }
+
+    #[test]
+    fn encode_update_location() {
+        let flags = DispositionFlags {
+            flush_queue: false,
+            send_ring_alert: false,
+            update_location: true,
+            high_priority: false,
+            assign_mtmsn: false,
+        };
+        assert_eq!(flags.encode(), 8);
+    }
+
+    #[test]
+    fn encode_high_priority() {
+        let flags = DispositionFlags {
+            flush_queue: false,
+            send_ring_alert: false,
+            update_location: false,
+            high_priority: true,
+            assign_mtmsn: false,
+        };
+        assert_eq!(flags.encode(), 16);
     }
 
     #[test]
@@ -114,7 +248,6 @@ mod test_disposition_flags {
             high_priority: false,
             assign_mtmsn: true,
         };
-
         assert_eq!(flags.encode(), 32);
     }
 
@@ -127,8 +260,18 @@ mod test_disposition_flags {
             high_priority: true,
             assign_mtmsn: true,
         };
-
         assert_eq!(flags.encode(), 59);
+    }
+
+    #[test]
+    fn roundtrip_decode_encode() {
+        let combinations = vec![
+            1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27, 32, 33, 34, 35, 40, 41, 42, 43,
+            48, 49, 50, 51, 56, 57, 58, 59,
+        ];
+        for i in combinations {
+            assert_eq!(i, DispositionFlags::decode(i).encode())
+        }
     }
 }
 
