@@ -478,3 +478,20 @@ impl InformationElement {
         }
     }
 }
+
+#[derive(Debug)]
+struct MTMessage {
+    elements: Vec<InformationElement>,
+}
+
+impl MTMessage {
+    fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
+        let mut n = 0;
+        for e in &self.elements {
+            n += e.write(wtr)?;
+        }
+        return Ok(n);
+    }
+}
+
+//size, read, write, to_vec, ...
