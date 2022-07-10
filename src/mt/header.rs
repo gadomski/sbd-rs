@@ -261,15 +261,33 @@ mod test_disposition_flags {
 }
 
 /// Mobile Terminated Header
+///
+/// IEI: 0x41 [1] (Table 5-1)
+///
+/// Fixed total size of 24 bytes.
+///
+/// # Components
+///
+/// * Client message ID: A 4-byte ID defined by the client which is used in
+///   the confirmation message sent back to the client. If the Assign MTMSN
+///   flag of the DispositionFlags is activated, this id value is assumed to
+///   be the MTMSN for the associated MT message payload.
+/// * IMEI: Equipment identifier of the MT message destination. This is a
+///   unique 15-digit number in ASCII format.
+/// * DispositionFlags: A set of flags available to the client trigger
+///   specific actions on the Iridium Gateway. See [DispositionFlags] for
+///   more details.
 #[derive(Debug)]
 pub(crate) struct Header {
-    // IEI: 0x41 [1] (Table 5-1)
-    // Header length [2]
     client_msg_id: u32, // or 4 u8?
     imei: [u8; 15],
     disposition_flags: DispositionFlags,
 }
 
+// Header lenght field
+//
+// This is a fixed value for the Header, but used to keep consistency with the
+// other IEI.
 impl Header {
     fn len(&self) -> usize {
         21
