@@ -1,5 +1,6 @@
 //! Mobile Terminated Header
 //!
+//! IEI: 0x41
 
 use crate::Error;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
