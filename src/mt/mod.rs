@@ -35,10 +35,18 @@ use crate::Error;
 #[derive(Debug, PartialEq)]
 /// Disposition Flags
 ///
-/// Note: byte 3 was not defined at this point, skipping to 3rd.
-/// Therefore, all flags on is currently 0b0000_0000_0011_1011.
+/// Flags:
+/// * Flush MT Queue: Delete all MT payloads in the SSD’s MT queue
+/// * Send Ring Alert - Mo MTM: Send ring alert with no associated MT payload
+///   (normal ring alert rules apply)
+/// * Update SSD Location: Update SSD location with given lat/lon values
+/// * High Priority Message: Place the associated MT payload in front of queue
+/// * Assign MTMSN: Use the value in the Unique ID field as the MTMSN
 ///
-/// Table 5-9
+/// # Notes
+///
+/// * The bit 3 was not defined at this point, skipping from 2nd to 4th.
+///   Therefore, all flags on would be 0b0000_0000_0011_1011.
 struct DispositionFlags {
     flush_queue: bool,
     send_ring_alert: bool,
@@ -50,26 +58,22 @@ struct DispositionFlags {
 impl DispositionFlags {
     /// Decode a u16 into a DispositionFlags
     ///
-    /// Each flag is encoded by a bit in a specific position, which
-    /// is on (true) or off (false).
+    /// Each flag is encoded by a bit in a specific position, which is on
+    /// (true) or off (false). Parsing the that sequence of bits, assuming
+    /// a big endian unsigned integer, results in the following values when
+    /// activated:
     ///
-    /// Flag values:
-    /// * Flush MT Queue (1): Delete all MT payloads in the SSD’s MT
-    ///   queue
-    /// * Send Ring Alert - Mo MTM (2): Send ring alert with no
-    ///   associated MT payload (normal ring alert rules apply)
-    /// * Update SSD Location (8): Update SSD location with given
-    ///   lat/lon values
-    /// * High Priority Message (16): Place the associated MT payload in
-    ///   front of queue
-    /// * Assign MTMSN (32): Use the value in the Unique ID field as the
-    ///   MTMSN
+    /// * Flush MT Queue: 1
+    /// * Send Ring Alert - Mo MTM: 2
+    /// * Update SSD Location: 8
+    /// * High Priority Message: 16
+    /// * Assign MTMSN: 32
     ///
     /// # Notes:
     ///
-    /// - All non used bits are ignored. It might be useful to
-    ///   consider a more strict approach, where this would fail if
-    ///   non-expected bit is activated.
+    /// - All non used bits are ignored. It might be useful to consider a more
+    ///   strict approach, where this would fail if a non-expected bit is
+    ///   activated.
     fn decode(code: u16) -> Self {
         let flush_queue = match code & 0b0000_0000_0000_0001 {
             0 => false,
@@ -107,6 +111,7 @@ impl DispositionFlags {
         Ok(DispositionFlags::decode(code))
     }
 
+    /// Encode a DispositionFlags into an u16
     fn encode(&self) -> u16 {
         (u16::from(self.assign_mtmsn) << 5)
             + (u16::from(self.high_priority) << 4)
@@ -115,6 +120,7 @@ impl DispositionFlags {
             + u16::from(self.flush_queue)
     }
 
+    /// Save a DispositionFlags using a Write trait
     fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
         wtr.write_u16::<BigEndian>(self.encode())?;
         Ok(2)
