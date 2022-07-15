@@ -294,6 +294,11 @@ impl Header {
     }
 
     fn read_from<R: std::io::Read>(mut read: R) -> Result<Header, Error> {
+        let iei = read.read_u8()?;
+        assert_eq!(iei, 0x41);
+        let len = read.read_u16::<BigEndian>()?;
+        assert_eq!(len, 21);
+
         let client_msg_id = read.read_u32::<BigEndian>()?;
         let mut imei = [0; 15];
         read.read_exact(&mut imei)?;
