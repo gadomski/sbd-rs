@@ -277,7 +277,7 @@ mod test_disposition_flags {
 /// * DispositionFlags: A set of flags available to the client trigger
 ///   specific actions on the Iridium Gateway. See [DispositionFlags] for
 ///   more details.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Header {
     client_msg_id: u32, // or 4 u8?
     imei: [u8; 15],
@@ -380,6 +380,25 @@ mod test_mt_header {
                 0x41, 0x00, 0x15, 0x00, 0x00, 0x27, 0x0f, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
                 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x00, 0x3b
             ]
+        );
+    }
+
+    #[test]
+    fn roundtrip_write_n_read() {
+        let header = Header {
+            client_msg_id: 9999,
+            imei: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+            disposition_flags: DispositionFlags {
+                flush_queue: true,
+                send_ring_alert: true,
+                update_location: true,
+                high_priority: true,
+                assign_mtmsn: true,
+            },
+        };
+        assert_eq!(
+            header,
+            Header::read_from(header.to_vec().as_slice()).unwrap()
         );
     }
 }
