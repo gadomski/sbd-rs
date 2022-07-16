@@ -1,6 +1,8 @@
 //! Mobile Terminated Header
 //!
-//! IEI: 0x41
+//! A mobile terminated header is one of the information element types that
+//! compose a mobile terminated message. It is defined by an information
+//! element identifier (IEI) with value 0x41.
 
 use crate::Error;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
