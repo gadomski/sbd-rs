@@ -291,7 +291,7 @@ impl Header {
     //
     // This is a fixed value for the Header, but used to keep consistency with the
     // other IEI.
-    fn len(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         21
     }
 

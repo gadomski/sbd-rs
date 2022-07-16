@@ -123,6 +123,14 @@ enum InformationElement {
 }
 
 impl InformationElement {
+    fn len(&self) -> usize {
+        match self {
+            InformationElement::H(element) => element.len(),
+            InformationElement::P(element) => element.len(),
+            InformationElement::C(element) => element.len(),
+        }
+    }
+
     fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
         match self {
             InformationElement::H(element) => element.write(wtr),
