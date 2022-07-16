@@ -286,11 +286,11 @@ pub(crate) struct Header {
     disposition_flags: DispositionFlags,
 }
 
-// Header lenght field
-//
-// This is a fixed value for the Header, but used to keep consistency with the
-// other IEI.
 impl Header {
+    // Header length field
+    //
+    // This is a fixed value for the Header, but used to keep consistency with the
+    // other IEI.
     fn len(&self) -> usize {
         21
     }
