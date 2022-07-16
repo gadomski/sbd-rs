@@ -295,6 +295,7 @@ impl Header {
         21
     }
 
+    // Import a Header from a Read trait
     fn read_from<R: std::io::Read>(mut read: R) -> Result<Header, Error> {
         let iei = read.read_u8()?;
         assert_eq!(iei, 0x41);
@@ -313,6 +314,7 @@ impl Header {
         })
     }
 
+    // Export a Header using a Write trait
     pub(crate) fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
         wtr.write_u8(0x41)?;
         wtr.write_u16::<BigEndian>(21)?;
