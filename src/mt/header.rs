@@ -50,26 +50,11 @@ impl DispositionFlags {
     ///   strict approach, where this would fail if a non-expected bit is
     ///   activated.
     fn decode(code: u16) -> Self {
-        let flush_queue = match code & 0b0000_0000_0000_0001 {
-            0 => false,
-            _ => true,
-        };
-        let send_ring_alert = match code & 0b0000_0000_0000_0010 {
-            0 => false,
-            _ => true,
-        };
-        let update_location = match code & 0b0000_0000_0000_1000 {
-            0 => false,
-            _ => true,
-        };
-        let high_priority = match code & 0b0000_0000_0001_0000 {
-            0 => false,
-            _ => true,
-        };
-        let assign_mtmsn = match code & 0b0000_0000_0010_0000 {
-            0 => false,
-            _ => true,
-        };
+        let flush_queue = !matches!(code & 0b0000_0000_0000_0001, 0);
+        let send_ring_alert = !matches!(code & 0b0000_0000_0000_0010, 0);
+        let update_location = !matches!(code & 0b0000_0000_0000_1000, 0);
+        let high_priority = !matches!(code & 0b0000_0000_0001_0000, 0);
+        let assign_mtmsn = !matches!(code & 0b0000_0000_0010_0000, 0);
 
         DispositionFlags {
             flush_queue,

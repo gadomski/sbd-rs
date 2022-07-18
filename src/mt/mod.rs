@@ -159,7 +159,7 @@ impl MTMessage {
         for e in &self.elements {
             n += e.write(wtr)?;
         }
-        return Ok(n);
+        Ok(n)
     }
 }
 
