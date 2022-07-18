@@ -319,7 +319,7 @@ impl Header {
         wtr.write_u8(0x41)?;
         wtr.write_u16::<BigEndian>(21)?;
         wtr.write_u32::<BigEndian>(self.client_msg_id)?;
-        wtr.write(&self.imei)?;
+        wtr.write_all(&self.imei)?;
         self.disposition_flags.write(wtr)?;
         Ok(24)
     }

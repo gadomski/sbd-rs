@@ -55,7 +55,7 @@ impl Payload {
             n.try_into()
                 .expect("MT Payload's length was supposed to be u16"),
         )?;
-        wtr.write(&self.payload)?;
+        wtr.write_all(&self.payload)?;
         Ok(3 + n)
     }
 }
@@ -82,7 +82,7 @@ impl Confirmation {
         wtr.write_u8(0x44)?;
         wtr.write_u16::<BigEndian>(25)?;
         wtr.write_u32::<BigEndian>(self.client_msg_id)?;
-        wtr.write(&self.imei)?;
+        wtr.write_all(&self.imei)?;
         wtr.write_u32::<BigEndian>(self.id_reference)?;
         wtr.write_i16::<BigEndian>(self.message_status)?;
         Ok(28)
