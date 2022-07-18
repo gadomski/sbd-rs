@@ -249,7 +249,7 @@ mod test_disposition_flags {
 
 /// Mobile Terminated Header
 ///
-/// IEI: 0x41 [1] (Table 5-1)
+/// IEI: 0x41
 ///
 /// Fixed total size of 24 bytes.
 ///
