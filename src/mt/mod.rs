@@ -1,32 +1,26 @@
 //! Mobile Terminated
 //!
 //!
-
-/*
-Information Element Identifiers:
-    0x01 MO Header IEI
-    0x02 MO Payload IEI
-    0x03 MO Lat/Lon Location Information IEI
-    0x05 MO Confirmation IEI
-
-    0x41 MT Header IEI
-    0x42 MT Payload IEI
-    0x43 MT Lat/Lon Location Information IEI
-    0x44 MT Confirmation Message IEI
-    0x45 MT LAC/Cell ID Location Informatio IEI
-
-
-Protocol Revision Number        1   1
-Overall Message Length          2   97
-MT Header IEI                   1   0x41
-MT Header Length                2   21
-Unique Client Message ID        4   “Msg1”
-IMEI (User ID)                  15  300034010123450
-MT Disposition Flags            2   0x0000
-MT Payload IEI                  1   0x42
-MT Payload Length               2   70
-MT Payload                      70  Payload Bytes
-*/
+//! ## MT - Information Elements
+//!
+//! * 0x41 Header IEI
+//! * 0x42 Payload IEI
+//! * 0x43 Lat/Lon Location Information IEI
+//! * 0x44 Confirmation Message IEI
+//! * 0x45 LAC/Cell ID Location Informatio IEI
+//!
+//! ## Example of an MT Message
+//!
+//! Protocol Revision Number        1   1
+//! Overall Message Length          2   39
+//! MT Header IEI                   1   0x41
+//! MT Header Length                2   21
+//! Unique Client Message ID        4   "Msg7"
+//! IMEI (User ID)                  15  314159265358979
+//! MT Disposition Flags            2   0x0000
+//! MT Payload IEI                  1   0x42
+//! MT Payload Length               2   12
+//! MT Payload                      12  "Hello World!"
 
 mod header;
 
