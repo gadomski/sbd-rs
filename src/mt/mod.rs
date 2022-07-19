@@ -109,6 +109,8 @@ mod test_mt_confirmation {
     }
 }
 
+// Let's allow dead while still WIP
+#[allow(dead_code)]
 #[derive(Debug)]
 enum InformationElement {
     H(Header),
@@ -139,6 +141,8 @@ struct MTMessage {
     elements: Vec<InformationElement>,
 }
 
+// Let's allow dead while still WIP
+#[allow(dead_code)]
 impl MTMessage {
     fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
         // Protocol version

@@ -271,6 +271,8 @@ pub(crate) struct Header {
     disposition_flags: DispositionFlags,
 }
 
+// Let's allow dead while still WIP
+#[allow(dead_code)]
 impl Header {
     // Header length field
     //
