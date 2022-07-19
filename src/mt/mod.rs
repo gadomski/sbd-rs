@@ -24,7 +24,7 @@
 
 mod header;
 
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, WriteBytesExt};
 
 use self::header::Header;
 use crate::Error;
