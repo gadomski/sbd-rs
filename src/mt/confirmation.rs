@@ -1,3 +1,4 @@
+use super::InformationElementTemplate;
 use crate::Error;
 use byteorder::{BigEndian, WriteBytesExt};
 
@@ -14,11 +15,19 @@ pub(super) struct Confirmation {
     message_status: i16,
 }
 
-impl Confirmation {
-    pub(super) fn len(&self) -> usize {
+impl InformationElementTemplate for Confirmation {
+    // Length field of the Confirmation element
+    //
+    // The length is the second field, just after the Information Element
+    // Identified, and defines how many bytes more after itself composes the
+    // Information Element. Therefore it is the total size minus 3 bytes
+    // (IEI + length).
+    fn len(&self) -> u16 {
         25
     }
+}
 
+impl Confirmation {
     pub(super) fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
         wtr.write_u8(0x44)?;
         wtr.write_u16::<BigEndian>(25)?;
