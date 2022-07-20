@@ -2,6 +2,7 @@ use super::InformationElementTemplate;
 use crate::Error;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
+#[derive(Debug)]
 enum MessageStatus {
     // Successful, order of message in the MT message queue starting on 0
     SuccessfulQueueOrder(u8),
