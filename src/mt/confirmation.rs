@@ -2,6 +2,58 @@ use super::InformationElementTemplate;
 use crate::Error;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
+enum MessageStatus {
+    // Successful, order of message in the MT message queue starting on 0
+    SuccessfulQueueOrder(u8),
+    // Invalid IMEI – too few characters, non-numeric characters
+    InvalidIMEI,
+    // Unknown IMEI – not provisioned on the GSS
+    UnkownIMEI,
+    // Payload size exceeded maximum allowed
+    PayloadOversized,
+    // Payload expected, but none received
+    PayloadMissing,
+    // MT message queue full (max of 50)
+    MTQueueFull,
+    // MT resources unavailable
+    MTResourcesUnavailable,
+    // Violation of MT DirectIP protocol
+    ProtocolViolation,
+    // Ring alerts to the given SSD are disabled
+    RingAlertsDisabled,
+    // The given SSD is not attached (not set to receive ring alerts)
+    SSDNotAttached,
+    // Source address rejected by MT filter
+    SourceAddressRejected,
+    // MTMSN value is out of range (valid range is 1 – 65,535)
+    MTMSNOutOfRange,
+    // Client SSL/TLS certificate rejected by MT filter
+    CertificateRejected,
+}
+
+impl MessageStatus {
+    fn decode(status: i8) -> Result<MessageStatus, Error> {
+        if (0..=50).contains(&status) {
+            return Ok(MessageStatus::SuccessfulQueueOrder(0));
+        }
+        match status {
+            -1 => Ok(MessageStatus::InvalidIMEI),
+            -2 => Ok(MessageStatus::UnkownIMEI),
+            -3 => Ok(MessageStatus::PayloadOversized),
+            -4 => Ok(MessageStatus::PayloadMissing),
+            -5 => Ok(MessageStatus::MTQueueFull),
+            -6 => Ok(MessageStatus::MTResourcesUnavailable),
+            -7 => Ok(MessageStatus::ProtocolViolation),
+            -8 => Ok(MessageStatus::RingAlertsDisabled),
+            -9 => Ok(MessageStatus::SSDNotAttached),
+            -10 => Ok(MessageStatus::SourceAddressRejected),
+            -11 => Ok(MessageStatus::MTMSNOutOfRange),
+            -12 => Ok(MessageStatus::CertificateRejected),
+            s => Err(Error::InvalidMessageStatus(s)),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub(super) struct Confirmation {
     // From Client (not MTMSN)
