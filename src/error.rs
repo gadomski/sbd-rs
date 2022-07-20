@@ -58,4 +58,8 @@ pub enum Error {
     /// Walkdir error.
     #[error("walkdir error: {0}")]
     Walkdir(#[from] walkdir::Error),
+
+    /// Invalid status for MT::Confirmation::MessageStatus.
+    #[error("Invalid MessageStatus: {0}")]
+    InvalidMessageStatus(i8),
 }
