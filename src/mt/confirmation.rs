@@ -37,6 +37,15 @@ impl Confirmation {
         wtr.write_i16::<BigEndian>(self.message_status)?;
         Ok(28)
     }
+
+    #[allow(dead_code)]
+    // Export header to a vec of bytes
+    fn to_vec(&self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::new();
+        self.write(&mut buffer)
+            .expect("Failed to write MT-Confirmation to a vec.");
+        buffer
+    }
 }
 
 #[cfg(test)]
