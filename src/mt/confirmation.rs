@@ -32,7 +32,7 @@ enum MessageStatus {
 }
 
 impl MessageStatus {
-    fn decode(status: i8) -> Result<MessageStatus, Error> {
+    fn decode(status: i16) -> Result<MessageStatus, Error> {
         if (0..=50).contains(&status) {
             return Ok(MessageStatus::SuccessfulQueueOrder(0));
         }

@@ -61,5 +61,5 @@ pub enum Error {
 
     /// Invalid status for MT::Confirmation::MessageStatus.
     #[error("Invalid MessageStatus: {0}")]
-    InvalidMessageStatus(i8),
+    InvalidMessageStatus(i16),
 }
