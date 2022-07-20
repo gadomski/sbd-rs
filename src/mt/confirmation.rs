@@ -1,6 +1,6 @@
 use super::InformationElementTemplate;
 use crate::Error;
-use byteorder::{BigEndian, WriteBytesExt};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 #[derive(Debug)]
 pub(super) struct Confirmation {
@@ -28,6 +28,27 @@ impl InformationElementTemplate for Confirmation {
 }
 
 impl Confirmation {
+    #[allow(dead_code)]
+    /// Parse a DispositionFlags from a Read trait
+    fn read_from<R: std::io::Read>(mut read: R) -> Result<Confirmation, Error> {
+        let iei = read.read_u8()?;
+        assert_eq!(iei, 0x44);
+        let len = read.read_u16::<BigEndian>()?;
+        assert_eq!(len, 25);
+
+        let client_msg_id = read.read_u32::<BigEndian>()?;
+        let mut imei = [0; 15];
+        read.read_exact(&mut imei)?;
+        let id_reference = read.read_u32::<BigEndian>()?;
+        let message_status = read.read_i16::<BigEndian>()?;
+        Ok(Confirmation {
+            client_msg_id,
+            imei,
+            id_reference,
+            message_status,
+        })
+    }
+
     pub(super) fn write<W: std::io::Write>(&self, wtr: &mut W) -> Result<usize, Error> {
         wtr.write_u8(0x44)?;
         wtr.write_u16::<BigEndian>(25)?;
