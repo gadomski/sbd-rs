@@ -34,7 +34,9 @@ enum MessageStatus {
 impl MessageStatus {
     fn decode(status: i16) -> Result<MessageStatus, Error> {
         if (0..=50).contains(&status) {
-            return Ok(MessageStatus::SuccessfulQueueOrder(0));
+            return Ok(MessageStatus::SuccessfulQueueOrder(
+                status.try_into().unwrap(),
+            ));
         }
         match status {
             -1 => Ok(MessageStatus::InvalidIMEI),
