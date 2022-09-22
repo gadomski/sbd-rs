@@ -62,22 +62,30 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
 
     fn log(&self, record: &log::Record) {
         if self.enabled(record.metadata()) {
-            let mut file = std::fs::OpenOptions::new()
-                .create(true)
-                .write(true)
-                .append(true)
-                .open(&self.path)
-                .unwrap();
-            file.write_all(
-                format!(
-                    "({}) {}: {}\n",
-                    chrono::Utc::now().format("%Y-%m-%d %H:%M:%S"),
-                    record.level(),
-                    record.args()
+            let mut output = if Path::new("/dev/stdout") == self.path.as_ref() {
+                Box::new(std::io::stdout().lock()) as Box<dyn Write>
+            } else {
+                Box::new(
+                    std::fs::OpenOptions::new()
+                        .create(true)
+                        .write(true)
+                        .append(true)
+                        .open(&self.path)
+                        .unwrap(),
+                ) as Box<dyn Write>
+            };
+
+            output
+                .write_all(
+                    format!(
+                        "({}) {}: {}\n",
+                        chrono::Utc::now().format("%Y-%m-%d %H:%M:%S"),
+                        record.level(),
+                        record.args()
+                    )
+                    .as_bytes(),
                 )
-                .as_bytes(),
-            )
-            .unwrap();
+                .unwrap();
         }
     }
 
