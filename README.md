@@ -3,7 +3,7 @@
 Native rust library to read and write Iridium Short Burt Data (SBD) messages, and an executable that exposes some of that library's functionality.
 Documentation is available [online](https://docs.rs/sbd), and they include some background on Iridum and its Short Burst Data (SBD) services.
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/gadomski/sbd-rs/Rust?style=for-the-badge)](https://github.com/gadomski/sbd-rs/actions/workflows/rust.yml)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/gadomski/sbd-rs/rust.yml?style=for-the-badge)
 [![Crates.io](https://img.shields.io/crates/v/sbd?style=for-the-badge)](https://crates.io/crates/sbd)
 [![docs.rs](https://img.shields.io/docsrs/sbd?style=for-the-badge)](https://docs.rs/sbd/)
 
@@ -15,6 +15,7 @@ Once you have rust, simply:
 ```bash
 cargo install sbd
 ```
+
 ### Using `sbd serve` as a daemon
 
 The executable includes a couple of powers, including a "run-forever" server for receiving Iridium SBD DirectIP messages and storing those messages to the filesystem.
@@ -42,8 +43,8 @@ This code was cobbled together by Pete Gadomski <pete@gadom.ski>.
 
 Licensed under either of
 
- * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+* Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+* MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 
