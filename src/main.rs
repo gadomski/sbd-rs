@@ -121,7 +121,19 @@ fn main() {
         }
     }
     if args.cmd_payload {
-        unimplemented!()
+        match Message::from_path(&args.arg_file) {
+            Ok(ref message) => match str::from_utf8(message.payload()) {
+                Ok(content) => println!("{}", content),
+                Err(err) => {
+                    println!("ERROR: Unable to parse paylode as UTF-8: {}", err);
+                    process::exit(1);
+                }
+            },
+            Err(err) => {
+                println!("ERROR: Unable to read message: {}", err);
+                process::exit(1);
+            }
+        }
     }
     if args.cmd_serve {
         let logger = Logger {
