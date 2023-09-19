@@ -44,9 +44,14 @@ impl InformationElement {
                 let session_status = SessionStatus::new(read.read_u8()?)?;
                 let momsn = read.read_u16::<BigEndian>()?;
                 let mtmsn = read.read_u16::<BigEndian>()?;
-                let time_of_session = read
-                    .read_u32::<BigEndian>()
-                    .map(|n| Utc.timestamp(i64::from(n), 0))?;
+                let time_of_session =
+                    read.read_u32::<BigEndian>()
+                        .map_err(Error::from)
+                        .and_then(|n| {
+                            Utc.timestamp_opt(i64::from(n), 0)
+                                .single()
+                                .ok_or(Error::InvalidTimeOfSession)
+                        })?;
                 Ok(InformationElement::Header(Header {
                     auto_id,
                     imei,
@@ -165,7 +170,9 @@ mod tests {
                     assert_eq!(75, header.momsn);
                     assert_eq!(0, header.mtmsn);
                     assert_eq!(
-                        Utc.ymd(2015, 7, 9).and_hms(18, 15, 8),
+                        Utc.with_ymd_and_hms(2015, 7, 9, 18, 15, 8)
+                            .single()
+                            .unwrap(),
                         header.time_of_session
                     );
                 }
@@ -196,7 +203,10 @@ mod tests {
             session_status: SessionStatus::Ok,
             momsn: 1,
             mtmsn: 1,
-            time_of_session: Utc.ymd(2017, 10, 17).and_hms(12, 0, 0),
+            time_of_session: Utc
+                .with_ymd_and_hms(2017, 10, 17, 12, 0, 0)
+                .single()
+                .unwrap(),
         };
         let ie = InformationElement::from(header);
         assert_eq!(31, ie.len());
@@ -220,7 +230,10 @@ mod tests {
             session_status: SessionStatus::Ok,
             momsn: 1,
             mtmsn: 1,
-            time_of_session: Utc.ymd(2017, 10, 17).and_hms(12, 0, 0),
+            time_of_session: Utc
+                .with_ymd_and_hms(2017, 10, 17, 12, 0, 0)
+                .single()
+                .unwrap(),
         };
         let ie = InformationElement::from(header);
         let mut cursor = Cursor::new(Vec::new());
@@ -237,7 +250,10 @@ mod tests {
             session_status: SessionStatus::Ok,
             momsn: 1,
             mtmsn: 1,
-            time_of_session: Utc.ymd(1969, 12, 31).and_hms(23, 59, 59),
+            time_of_session: Utc
+                .with_ymd_and_hms(1969, 12, 31, 23, 59, 59)
+                .single()
+                .unwrap(),
         };
         assert!(InformationElement::from(header)
             .write_to(Cursor::new(Vec::new()))

@@ -15,6 +15,10 @@ pub enum Error {
     #[error("invalid protocol revision number: {0}")]
     InvalidProtocolRevisionNumber(u8),
 
+    /// Invalid time of session.
+    #[error("invalid time of session")]
+    InvalidTimeOfSession,
+
     /// IO error.
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
