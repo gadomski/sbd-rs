@@ -291,7 +291,7 @@ mod tests {
             session_status: SessionStatus::Ok,
             momsn: 1,
             mtmsn: 0,
-            time_of_session: Utc.ymd(2017, 10, 1).and_hms(1, 2, 3),
+            time_of_session: Utc.with_ymd_and_hms(2017, 10, 1, 1, 2, 3).single().unwrap(),
         }
     }
 
@@ -356,7 +356,9 @@ mod tests {
         assert_eq!(75, message.momsn());
         assert_eq!(0, message.mtmsn());
         assert_eq!(
-            Utc.ymd(2015, 7, 9).and_hms(18, 15, 8),
+            Utc.with_ymd_and_hms(2015, 7, 9, 18, 15, 8)
+                .single()
+                .unwrap(),
             message.time_of_session()
         );
         assert_eq!(
@@ -384,7 +386,7 @@ mod tests {
     fn order() {
         let header1 = header();
         let mut header2 = header();
-        header2.time_of_session = Utc.ymd(2010, 6, 11).and_hms(0, 0, 0);
+        header2.time_of_session = Utc.with_ymd_and_hms(2010, 6, 11, 0, 0, 0).single().unwrap();
         let message1 = Message::new(vec![header1.into(), Vec::new().into()]).unwrap();
         let message2 = Message::new(vec![header2.into(), Vec::new().into()]).unwrap();
         assert!(message2 < message1);
