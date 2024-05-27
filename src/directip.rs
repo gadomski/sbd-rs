@@ -2,7 +2,7 @@
 //!
 //! Iridium `DirectIP` is a service provided by the Iridium company. New Mobile
 //! Originated messages are forwarded from the Iridium servers to a configured
-//! IP address. The Iridum service attempts to initate a TCP connection to port
+//! IP address. The Iridium service attempts to initiate a TCP connection to port
 //! 10800 at the specified IP. If the connection is successful, the MO message
 //! is transmitted, then the connection is closed.
 //!
@@ -132,7 +132,7 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<dyn Storage>>) {
     let message = match Message::read_from(stream) {
         Ok(message) => {
             info!(
-                "Recieved message from IMEI {} with MOMN {} and {} byte payload",
+                "Received message from IMEI {} with MOMN {} and {} byte payload",
                 message.imei(),
                 message.momsn(),
                 message.payload().len(),

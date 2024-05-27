@@ -18,7 +18,7 @@ pub enum SessionStatus {
     OkLocationUnacceptableQuality = 2,
     /// The SBD session timed out before session completion.
     Timeout = 10,
-    /// The MO message being transferred by the IMEI is too large to be transerred within a single
+    /// The MO message being transferred by the IMEI is too large to be transferred within a single
     /// SBD session.
     MobileOriginatedTooLarge = 12,
     /// An RF link loss ocurred during the SBD session.

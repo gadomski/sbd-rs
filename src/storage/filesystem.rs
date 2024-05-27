@@ -11,7 +11,7 @@ use crate::{mo::Message, storage, Error};
 
 const SBD_EXTENSION: &str = "sbd";
 
-/// A structure for managing storing and retriving SBD messages on a filesystem.
+/// A structure for managing storing and retrieving SBD messages on a filesystem.
 ///
 /// Messages are stored in a directory hierarchy under a single root directory.
 /// Message storage and retrieval are managed by a `Storage` object, which is

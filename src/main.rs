@@ -125,7 +125,7 @@ fn main() {
             Ok(ref message) => match str::from_utf8(message.payload()) {
                 Ok(content) => println!("{}", content),
                 Err(err) => {
-                    println!("ERROR: Unable to parse paylode as UTF-8: {}", err);
+                    println!("ERROR: Unable to parse payload as UTF-8: {}", err);
                     process::exit(1);
                 }
             },
