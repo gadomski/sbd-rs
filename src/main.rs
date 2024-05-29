@@ -68,7 +68,6 @@ impl<P: AsRef<Path> + Send + Sync> log::Log for Logger<P> {
                 Box::new(
                     std::fs::OpenOptions::new()
                         .create(true)
-                        .write(true)
                         .append(true)
                         .open(&self.path)
                         .unwrap(),
