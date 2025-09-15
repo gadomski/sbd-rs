@@ -122,7 +122,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_parse_mo_location() {
-        // flags=0 (north, east), 37° 30.000' N, 122° 15.000' W, CEP=5 km
+        // flags=01 (north, west), 37° 30.000' N, 122° 15.000' W, CEP=5 km
         // thousandths-of-minute: 30.000' -> 30000 (0x7530), 15.000' -> 15000 (0x3A98)
         let bytes: [u8; 11] = [
             0x01, 0x25, 0x75, 0x30, 0x7A, 0x3A, 0x98, 0x00, 0x00, 0x00, 0x05,
