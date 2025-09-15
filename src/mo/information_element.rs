@@ -224,7 +224,7 @@ mod tests {
 
     #[test]
     fn location_information_len() {
-        assert_eq!(10, InformationElement::LocationInformation([0; 11]).len());
+        assert_eq!(14, InformationElement::LocationInformation([0; 11]).len());
     }
 
     #[test]
