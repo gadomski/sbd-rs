@@ -98,7 +98,7 @@ impl InformationElement {
         match *self {
             InformationElement::Header(ref header) => {
                 write.write_u8(1)?;
-                write.write_u16::<BigEndian>(31)?; // 28?
+                write.write_u16::<BigEndian>(28)?;
                 write.write_u32::<BigEndian>(header.auto_id)?;
                 write.write_all(&header.imei)?;
                 write.write_u8(header.session_status as u8)?;
@@ -123,7 +123,7 @@ impl InformationElement {
             }
             InformationElement::LocationInformation(ref bytes) => {
                 write.write_u8(3)?;
-                write.write_u16::<BigEndian>(20)?; //11?
+                write.write_u16::<BigEndian>(11)?;
                 write.write_all(bytes)?;
             }
         }
