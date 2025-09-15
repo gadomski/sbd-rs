@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2025-09-15
+
+### Added
+
+- Location ([#25](https://github.com/gadomski/sbd-rs/pull/25))
+
 ## [0.3.3] - 2024-05-29
 
 ### Fixed
@@ -46,7 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Travis CI
 
-[Unreleased]: https://github.com/gadomski/sbd-rs/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/gadomski/sbd-rs/compare/v0.3.4...HEAD
+[0.3.4]: https://github.com/gadomski/sbd-rs/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/gadomski/sbd-rs/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/gadomski/sbd-rs/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/gadomski/sbd-rs/compare/v0.3.0...v0.3.1

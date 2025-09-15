@@ -1,6 +1,6 @@
 [package]
 name = "sbd"
-version = "0.3.3"
+version = "0.3.4"
 authors = ["Pete Gadomski <pete.gadomski@gmail.com>"]
 description = "Read and write Iridium Short Burst Data (SBD) messages"
 repository = "https://github.com/gadomski/sbd-rs"
@@ -18,7 +18,7 @@ docopt = "1"
 log = { version = "0.4", features = ["std"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-thiserror = "1"
+thiserror = "2"
 walkdir = "2"
 
 [dev-dependencies]
