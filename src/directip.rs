@@ -188,14 +188,13 @@ mod tests {
         assert!(s.contains("@gadomski"));
 
         for ie in parsed_message.information_elements() {
-            let mo_location_option = ie.as_mo_location();
-            assert!(mo_location_option.is_some());
-            let mo_location_result = mo_location_option.unwrap();
-            assert!(mo_location_result.is_ok());
-            let mo_location = mo_location_result.unwrap();
-            assert!(!mo_location.north);
-            assert!(mo_location.east);
-            assert_eq!(mo_location.cep_km, 2);
+            if let Some(Ok(mo_location)) = ie.as_mo_location() {
+                assert!(!mo_location.north);
+                assert!(mo_location.east);
+                assert_eq!(mo_location.cep_km, 2);
+            } else {
+                panic!("Expected MO Location IE");
+            }
         }
         let storage = Arc::new(Mutex::new(MemoryStorage::new()));
         let result = storage.lock().unwrap().store(parsed_message);
