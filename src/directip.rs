@@ -170,8 +170,7 @@ mod tests {
         let test_file = "data/2-location.mo.sbd";
         if !Path::new(test_file).exists() {
             // Skip test if file does not exist
-            eprintln!("Test file {} does not exist, skipping.", test_file);
-            return;
+            panic!("Test file {} does not exist.", test_file);
         }
 
         let file_bytes = fs::read(test_file).expect("Failed to read test .mo.sbd file");
@@ -180,12 +179,7 @@ mod tests {
             Ok(msg) => msg,
             Err(e) => panic!("Failed to parse real message: {:?}", e),
         };
-        println!(
-            "Parsed message from IMEI {} with MOMSN {} and payload length {}",
-            parsed_message.imei(),
-            parsed_message.momsn(),
-            parsed_message.payload().len(),
-        );
+
         assert_eq!(parsed_message.imei(), "301434061799480");
         assert_eq!(parsed_message.momsn(), 7);
         assert_eq!(parsed_message.payload().len(), 46);
@@ -199,9 +193,8 @@ mod tests {
             let mo_location_result = mo_location_option.unwrap();
             assert!(mo_location_result.is_ok());
             let mo_location = mo_location_result.unwrap();
-
-            assert!(mo_location.north);
-            assert!(!mo_location.east);
+            assert!(!mo_location.north);
+            assert!(mo_location.east);
             assert_eq!(mo_location.cep_km, 2);
         }
         let storage = Arc::new(Mutex::new(MemoryStorage::new()));

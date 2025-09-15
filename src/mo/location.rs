@@ -52,11 +52,10 @@ impl MoLocation {
             // Non-fatal spec violation in the field — up to you whether to hard error or just warn.
             return Err(MoLocationError::ReservedBitsNonZero(b0));
         }
-
-        // Choose bit 0 for NSI and bit 1 for EWI.
+        // Choose bit 1 for NSI and bit 0 for EWI.
         // Spec states 0=North,1=South and 0=East,1=West respectively.
-        let north = (b0 & 0b0000_0001) == 0;
-        let east = (b0 & 0b0000_0010) == 0;
+        let north = (b0 & 0b0000_0010) == 0;
+        let east = (b0 & 0b0000_0001) == 0;
 
         let lat_deg = bytes[1];
         if lat_deg > 90 {
@@ -123,14 +122,14 @@ mod tests {
     use super::*;
     #[test]
     fn test_parse_mo_location() {
-        // flags=0 (north, east), 37° 30.000' N, 122° 15.000' E, CEP=5 km
+        // flags=0 (north, east), 37° 30.000' N, 122° 15.000' W, CEP=5 km
         // thousandths-of-minute: 30.000' -> 30000 (0x7530), 15.000' -> 15000 (0x3A98)
         let bytes: [u8; 11] = [
-            0x00, 0x25, 0x75, 0x30, 0x7A, 0x3A, 0x98, 0x00, 0x00, 0x00, 0x05,
+            0x01, 0x25, 0x75, 0x30, 0x7A, 0x3A, 0x98, 0x00, 0x00, 0x00, 0x05,
         ];
 
         let loc = MoLocation::parse(bytes).unwrap();
-        assert!(loc.north && loc.east);
+        assert!(loc.north && !loc.east);
         assert_eq!(loc.lat_deg, 37);
         assert_eq!(loc.lat_thousandths_min, 30_000);
         assert_eq!(loc.lon_deg, 122);
@@ -140,6 +139,6 @@ mod tests {
         let lat = loc.latitude_deg();
         let lon = loc.longitude_deg();
         assert!((lat - 37.5).abs() < 1e-9);
-        assert!((lon - 122.25).abs() < 1e-9);
+        assert!((lon + 122.25).abs() < 1e-9);
     }
 }
