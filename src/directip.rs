@@ -158,3 +158,44 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<dyn Storage>>) {
 fn handle_error(err: &io::Error) {
     error!("Error when receiving tcp communication: {:?}", err);
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::storage::MemoryStorage;
+    use std::{fs, io::Cursor, path::Path};
+
+    #[test]
+    fn test_store_real_message_from_stream_file() {
+        // Use a real .mo.sbd file as test input
+        let test_file = "data/2-location.mo.sbd";
+        if !Path::new(test_file).exists() {
+            // Skip test if file does not exist
+            panic!("Test file {} does not exist.", test_file);
+        }
+
+        let file_bytes = fs::read(test_file).expect("Failed to read test .mo.sbd file");
+        let mut cur = Cursor::new(&file_bytes);
+        let parsed_message = Message::read_from(&mut cur).unwrap();
+
+        assert_eq!(parsed_message.imei(), "301434061799480");
+        assert_eq!(parsed_message.momsn(), 7);
+        assert_eq!(parsed_message.payload().len(), 46);
+
+        let s = std::str::from_utf8(parsed_message.payload()).expect("payload not UTF-8");
+        assert!(s.contains("@gadomski"));
+
+        for ie in parsed_message.information_elements() {
+            if let Some(Ok(mo_location)) = ie.as_mo_location() {
+                assert!(!mo_location.north);
+                assert!(mo_location.east);
+                assert_eq!(mo_location.cep_km, 2);
+            } else {
+                panic!("Expected MO Location IE");
+            }
+        }
+        let storage = Arc::new(Mutex::new(MemoryStorage::new()));
+        let result = storage.lock().unwrap().store(parsed_message);
+
+        assert!(result.is_ok(), "Real message should be stored successfully");
+    }
+}

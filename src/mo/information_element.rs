@@ -9,7 +9,10 @@ use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use chrono::{TimeZone, Utc};
 
 use crate::{
-    mo::{Header, SessionStatus},
+    mo::{
+        location::{MoLocation, MoLocationError},
+        Header, SessionStatus,
+    },
     Error,
 };
 
@@ -23,12 +26,7 @@ pub enum InformationElement {
     /// The mobile originated payload.
     Payload(Vec<u8>),
     /// The mobile originated location information.
-    ///
-    /// FIXME I don't have a test case for this, yet, so I haven't actually broken out the location
-    /// information into fields.
-    ///
-    /// See #9.
-    LocationInformation([u8; 7]),
+    LocationInformation([u8; 11]),
 }
 
 impl InformationElement {
@@ -67,7 +65,7 @@ impl InformationElement {
                 Ok(InformationElement::Payload(payload))
             }
             3 => {
-                let mut bytes = [0; 7];
+                let mut bytes = [0; 11];
                 read.read_exact(&mut bytes)?;
                 Ok(InformationElement::LocationInformation(bytes))
             }
@@ -81,7 +79,7 @@ impl InformationElement {
         match *self {
             InformationElement::Header(_) => 31,
             InformationElement::Payload(ref payload) => 3 + payload.len(),
-            InformationElement::LocationInformation(_) => 10,
+            InformationElement::LocationInformation(_) => 14,
         }
     }
 
@@ -100,7 +98,7 @@ impl InformationElement {
         match *self {
             InformationElement::Header(ref header) => {
                 write.write_u8(1)?;
-                write.write_u16::<BigEndian>(31)?;
+                write.write_u16::<BigEndian>(28)?;
                 write.write_u32::<BigEndian>(header.auto_id)?;
                 write.write_all(&header.imei)?;
                 write.write_u8(header.session_status as u8)?;
@@ -125,11 +123,18 @@ impl InformationElement {
             }
             InformationElement::LocationInformation(ref bytes) => {
                 write.write_u8(3)?;
-                write.write_u16::<BigEndian>(20)?;
+                write.write_u16::<BigEndian>(11)?;
                 write.write_all(bytes)?;
             }
         }
         Ok(())
+    }
+    /// If this is a location information element, parse it into a `MoLocation`.
+    pub fn as_mo_location(&self) -> Option<Result<MoLocation, MoLocationError>> {
+        match self {
+            InformationElement::LocationInformation(bytes) => Some(MoLocation::parse(*bytes)),
+            _ => None,
+        }
     }
 }
 
@@ -219,7 +224,7 @@ mod tests {
 
     #[test]
     fn location_information_len() {
-        assert_eq!(10, InformationElement::LocationInformation([0; 7]).len());
+        assert_eq!(14, InformationElement::LocationInformation([0; 11]).len());
     }
 
     #[test]
@@ -272,7 +277,6 @@ mod tests {
 
     #[test]
     fn payload_too_long() {
-        use std::u16;
         let payload = vec![0; u16::MAX as usize + 1];
         assert!(InformationElement::from(payload)
             .write_to(Cursor::new(Vec::new()))
@@ -281,7 +285,7 @@ mod tests {
 
     #[test]
     fn roundtrip_location_information() {
-        let ie = InformationElement::LocationInformation([1; 7]);
+        let ie = InformationElement::LocationInformation([1; 11]);
         let mut cursor = Cursor::new(Vec::new());
         ie.write_to(&mut cursor).unwrap();
         cursor.set_position(0);
