@@ -5,6 +5,7 @@
 
 mod header;
 mod information_element;
+mod location;
 mod message;
 mod session_status;
 

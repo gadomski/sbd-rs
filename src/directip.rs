@@ -158,3 +158,55 @@ fn handle_stream(stream: TcpStream, storage: Arc<Mutex<dyn Storage>>) {
 fn handle_error(err: &io::Error) {
     error!("Error when receiving tcp communication: {:?}", err);
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::storage::MemoryStorage;
+    use std::{fs, io::Cursor, path::Path};
+
+    #[test]
+    fn test_store_real_message_from_stream_file() {
+        // Use a real .mo.sbd file as test input
+        let test_file = "data/2-location.mo.sbd";
+        if !Path::new(test_file).exists() {
+            // Skip test if file does not exist
+            eprintln!("Test file {} does not exist, skipping.", test_file);
+            return;
+        }
+
+        let file_bytes = fs::read(test_file).expect("Failed to read test .mo.sbd file");
+        let mut cur = Cursor::new(&file_bytes);
+        let parsed_message = match Message::read_from(&mut cur) {
+            Ok(msg) => msg,
+            Err(e) => panic!("Failed to parse real message: {:?}", e),
+        };
+        println!(
+            "Parsed message from IMEI {} with MOMSN {} and payload length {}",
+            parsed_message.imei(),
+            parsed_message.momsn(),
+            parsed_message.payload().len(),
+        );
+        assert_eq!(parsed_message.imei(), "301434061799480");
+        assert_eq!(parsed_message.momsn(), 7);
+        assert_eq!(parsed_message.payload().len(), 46);
+
+        let s = std::str::from_utf8(parsed_message.payload()).expect("payload not UTF-8");
+        assert!(s.contains("@gadomski"));
+
+        for ie in parsed_message.information_elements() {
+            let mo_location_option = ie.as_mo_location();
+            assert!(mo_location_option.is_some());
+            let mo_location_result = mo_location_option.unwrap();
+            assert!(mo_location_result.is_ok());
+            let mo_location = mo_location_result.unwrap();
+
+            assert!(mo_location.north);
+            assert!(!mo_location.east);
+            assert_eq!(mo_location.cep_km, 2);
+        }
+        let storage = Arc::new(Mutex::new(MemoryStorage::new()));
+        let result = storage.lock().unwrap().store(parsed_message);
+
+        assert!(result.is_ok(), "Real message should be stored successfully");
+    }
+}

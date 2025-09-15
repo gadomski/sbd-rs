@@ -220,6 +220,18 @@ impl Message {
     pub fn payload(&self) -> &Vec<u8> {
         &self.payload
     }
+    /// Returns this message's information elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sbd::mo::Message;
+    /// let message = Message::from_path("data/2-location.mo.sbd").unwrap();
+    /// let payload = message.payload();
+    /// ```
+    pub fn information_elements(&self) -> &Vec<InformationElement> {
+        &self.information_elements
+    }
 
     /// Write this message back to a object that can `Write`.
     ///
@@ -370,7 +382,7 @@ mod tests {
         let message = Message::new(vec![
             header().into(),
             vec![1].into(),
-            InformationElement::LocationInformation([0; 7]),
+            InformationElement::LocationInformation([0; 11]),
         ])
         .unwrap();
         let mut cursor = Cursor::new(Vec::new());
