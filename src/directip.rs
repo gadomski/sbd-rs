@@ -175,10 +175,7 @@ mod tests {
 
         let file_bytes = fs::read(test_file).expect("Failed to read test .mo.sbd file");
         let mut cur = Cursor::new(&file_bytes);
-        let parsed_message = match Message::read_from(&mut cur) {
-            Ok(msg) => msg,
-            Err(e) => panic!("Failed to parse real message: {:?}", e),
-        };
+        let parsed_message = Message::read_from(&mut cur).unwrap();
 
         assert_eq!(parsed_message.imei(), "301434061799480");
         assert_eq!(parsed_message.momsn(), 7);
