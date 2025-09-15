@@ -120,7 +120,7 @@ impl Iterator for StorageIterator {
             .by_ref()
             .find(|r| {
                 r.as_ref()
-                    .map(|d| d.path().extension().map_or(false, |e| e == SBD_EXTENSION))
+                    .map(|d| d.path().extension().is_some_and(|e| e == SBD_EXTENSION))
                     .unwrap_or(false)
             })
             .map(|r| {

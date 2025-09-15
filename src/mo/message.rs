@@ -15,8 +15,6 @@ use crate::{
 /// The only valid protocol revision number.
 pub const PROTOCOL_REVISION_NUMBER: u8 = 1;
 
-/// Error returned when there is no
-
 /// A mobile-origined Iridium SBD message.
 ///
 /// `Message`s can be ordered by time of session.
