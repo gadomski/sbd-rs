@@ -272,7 +272,6 @@ mod tests {
 
     #[test]
     fn payload_too_long() {
-        use std::u16;
         let payload = vec![0; u16::MAX as usize + 1];
         assert!(InformationElement::from(payload)
             .write_to(Cursor::new(Vec::new()))
